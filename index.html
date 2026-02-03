@@ -3,229 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ExploreMeet Chat</title>
+    <meta name="referrer" content="no-referrer"> <!-- Critical for Google Photos -->
+    <title>ExploreMeet Chat | Random Video</title>
     
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Third Party SDKs -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- ZegoCloud -->
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
 
     <style>
-        /* --- THEME --- */
         :root {
-            --bg-dark: #0a0a12;
-            --card-bg: #151520;
-            --primary-pink: #ff0055;
-            --vip-gold: #ffd700;
-            --text-white: #ffffff;
-            --text-muted: #888899;
+            --primary: #ff0055; /* Neon Pink */
+            --bg: #0a0a12;
+            --glass: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --gray: #888;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body, html { height: 100%; background-color: var(--bg-dark); color: var(--text-white); overflow: hidden; }
-
-        /* --- UTILS --- */
-        .hidden { display: none !important; }
-        .glass-input { width: 100%; padding: 12px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; margin-bottom: 10px; }
-        img { object-fit: cover; } /* Ensures photos don't stretch */
-
-        /* --- LOGIN --- */
-        #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; font-weight: bold; border: none; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-
-        /* --- MAIN LAYOUT --- */
-        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 70px; }
         
-        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(20,20,30,0.95); border-bottom: 1px solid #333; }
-        .brand { font-size: 1.2rem; font-weight: 800; }
-        .brand span { color: var(--primary-pink); }
-        .vip-badge { background: var(--vip-gold); color: black; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; display: none; }
-
-        /* --- HOME (MATCHING) --- */
-        .home-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .radar-box { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
-        
-        .my-avatar { 
-            width: 100px; height: 100px; border-radius: 50%; border: 3px solid white; 
-            z-index: 2; position: relative; box-shadow: 0 0 15px var(--primary-pink);
-            background-color: #333; 
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* --- Utilities --- */
+        .hidden { display: none !important; }
+        .btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--primary);
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); box-shadow: none; }
+
+        /* --- Auth Screen --- */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 999;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center;
+        }
+        .logo { font-size: 2rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; }
+        .logo span { color: var(--primary); }
+
+        /* --- Main App Layout --- */
+        #app-container { flex: 1; position: relative; overflow-y: auto; padding-bottom: 70px; }
         
-        .radar-ring { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; animation: pulse 2s infinite; opacity: 0; }
-        .radar-ring:nth-child(2) { animation-delay: 0.6s; }
-        @keyframes pulse { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 60px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 100;
+        }
+        .nav-item { color: var(--gray); font-size: 1.5rem; cursor: pointer; position: relative; }
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
 
-        .start-btn { background: linear-gradient(90deg, var(--primary-pink), #ff4444); color: white; border: none; padding: 18px 70px; border-radius: 50px; font-size: 1.3rem; font-weight: bold; box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4); cursor: pointer; }
+        /* --- Tabs --- */
+        .tab-content { padding: 20px; height: 100%; display: none; }
+        .tab-content.active { display: block; }
 
-        /* --- MESSAGES LIST --- */
-        .list-screen { flex: 1; padding: 20px; overflow-y: auto; }
-        .list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
-        .list-item:active { background: rgba(255,255,255,0.05); }
-        .u-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; background: #333; }
-        .u-info { flex: 1; }
-        .u-name { font-weight: 600; font-size: 1.1rem; }
-        .u-msg { font-size: 0.85rem; color: #888; }
-
-        /* --- PROFILE --- */
-        .profile-card { background: var(--card-bg); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #333; margin-top: 20px; }
+        /* Home / Radar */
+        #home-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
+        .avatar-container {
+            width: 120px; height: 120px; border-radius: 50%;
+            position: relative; margin-bottom: 40px;
+        }
+        .user-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
         
-        /* Profile Image Container with Edit Icon */
-        .profile-img-container { position: relative; width: 110px; height: 110px; margin: 0 auto 15px auto; cursor: pointer; }
-        .profile-pic-lg { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--primary-pink); background-color: #333; }
-        .edit-icon { position: absolute; bottom: 5px; right: 5px; background: white; color: black; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 2px solid var(--primary-pink); }
+        /* Radar Animation */
+        .radar-ring {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .animate-radar .radar-ring { animation: radar 2s infinite ease-out; }
+        .animate-radar .radar-ring:nth-child(1) { width: 120px; height: 120px; animation-delay: 0s; }
+        .animate-radar .radar-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.5s; }
+        .animate-radar .radar-ring:nth-child(3) { width: 120px; height: 120px; animation-delay: 1s; }
 
-        .label { font-size: 0.8rem; color: #888; margin-top: 10px; display: block; }
+        @keyframes radar {
+            0% { width: 120px; height: 120px; opacity: 0.8; }
+            100% { width: 300px; height: 300px; opacity: 0; }
+        }
+
+        /* Video Container */
+        #video-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 200;
+            display: none;
+        }
+        #zego-mount { width: 100%; height: 100%; }
         
-        .vip-buy-btn { width: 100%; background: var(--vip-gold); color: black; padding: 12px; border-radius: 10px; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .logout-btn { width: 100%; background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 12px; border-radius: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
+        /* Custom Video Controls */
+        .video-controls {
+            position: absolute; bottom: 80px; left: 0; width: 100%;
+            display: flex; justify-content: center; gap: 20px;
+            z-index: 210;
+        }
+        .control-btn {
+            width: 50px; height: 50px; border-radius: 50%;
+            border: none; color: white; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .btn-next { background: var(--primary); width: 120px; border-radius: 30px; }
+        .btn-stop { background: #ff3333; }
+        .btn-friend { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); z-index: 210; }
 
-        /* --- ADS --- */
-        #ad-banner { width: 100%; height: 60px; background: #222; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 70px; border-top: 1px solid #333; z-index: 90; }
-        .ad-text { color: #555; font-size: 0.8rem; }
+        /* Searching Overlay */
+        #searching-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 205; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            display: none;
+        }
 
-        /* --- BOTTOM NAV --- */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: var(--bg-dark); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .nav-icon { font-size: 1.4rem; color: #666; padding: 10px; cursor: pointer; }
-        .nav-icon.active { color: var(--primary-pink); }
+        /* Profile Tab */
+        .profile-header { text-align: center; margin-bottom: 20px; }
+        .vip-badge {
+            background: gold; color: black; padding: 2px 8px;
+            border-radius: 5px; font-size: 0.8rem; font-weight: bold;
+            display: none; margin-top: 5px;
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; color: var(--gray); margin-bottom: 5px; }
+        .input-group input {
+            width: 100%; padding: 10px; background: var(--glass);
+            border: 1px solid #333; color: white; border-radius: 8px;
+        }
+        #custom-file-upload { display: none; }
 
-        /* --- VIDEO & LOADER --- */
-        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
-        #remote-video { width: 100%; height: 100%; }
-        
-        .video-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 2001; }
-        .v-header { margin-top: 40px; text-align: center; text-shadow: 0 2px 5px black; font-weight: 600; }
-        
-        .add-friend-btn { position: absolute; top: 50px; right: 20px; width: 50px; height: 50px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+        /* Messages / Friends */
+        .friend-item {
+            display: flex; align-items: center; padding: 15px;
+            background: var(--glass); margin-bottom: 10px; border-radius: 10px;
+            cursor: pointer;
+        }
+        .friend-img { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; }
+        .friend-info h4 { font-size: 1rem; }
+        .friend-info p { font-size: 0.8rem; color: var(--gray); }
 
-        .v-controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-evenly; pointer-events: auto; }
-        .ctrl-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; border: none; color: white; font-size: 1.2rem; backdrop-filter: blur(5px); cursor: pointer; }
-        .btn-next { background: var(--primary-pink); width: 150px; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        /* Chat Overlay */
+        #chat-overlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 300;
+            display: flex; flex-direction: column; transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+        #chat-overlay.open { transform: translateX(0); }
+        .chat-header {
+            padding: 15px; background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .chat-body { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-footer { padding: 10px; background: rgba(0,0,0,0.5); display: flex; gap: 10px; }
+        .chat-msg { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; }
+        .msg-mine { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 0; }
+        .msg-theirs { background: #333; align-self: flex-start; border-bottom-left-radius: 0; }
 
-        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.98); z-index: 2002; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .loader-ring { width: 60px; height: 60px; border: 4px solid var(--primary-pink); border-top-color: transparent; border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- CHAT OVERLAY --- */
-        #chat-interface { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 3000; display: none; flex-direction: column; }
-        .chat-head { padding: 15px; background: var(--card-bg); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
-        .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .chat-foot { padding: 10px; background: var(--card-bg); display: flex; gap: 10px; }
-        
-        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 0.9rem; word-wrap: break-word; }
-        .msg-me { background: var(--primary-pink); align-self: flex-end; border-bottom-right-radius: 5px; }
-        .msg-other { background: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
-
+        /* Ad Banner */
+        #ad-banner {
+            position: fixed; bottom: 60px; width: 100%; height: 50px;
+            background: #222; display: flex; align-items: center; justify-content: center;
+            color: #555; font-size: 0.8rem; border-top: 1px solid #333;
+        }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <h1 class="brand" style="font-size: 2.2rem; margin-bottom: 50px;">ExploreMeet <span>Chat</span></h1>
-        <button class="login-btn" onclick="login()"><i class="fab fa-google"></i> Login with Google</button>
+    <!-- Auth Screen -->
+    <div id="auth-screen">
+        <div class="logo">Explore<span>Meet</span></div>
+        <button id="login-btn" class="btn"><i class="fab fa-google"></i> Login with Google</button>
     </div>
 
+    <!-- Main App -->
     <div id="app-container" class="hidden">
         
-        <div class="header">
-            <div class="brand">ExploreMeet <span>Chat</span></div>
-            <div id="vip-tag" class="vip-badge"><i class="fas fa-crown"></i> VIP</div>
-        </div>
-
-        <div id="tab-home" class="screen-content home-content">
-            <div class="radar-box">
-                <div class="radar-ring"></div><div class="radar-ring"></div>
-                <img id="home-dp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="my-avatar" referrerpolicy="no-referrer">
+        <!-- Home Tab -->
+        <div id="home-tab" class="tab-content active">
+            <div class="avatar-container" id="radar-anim">
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <img src="" id="home-avatar" class="user-avatar" referrerpolicy="no-referrer">
             </div>
-            <h2 style="margin-bottom: 10px;">Find Match</h2>
-            <p style="color: #888; margin-bottom: 40px;">Tap Start to Connect</p>
-            <button class="start-btn" onclick="startMatchingCycle()">START</button>
+            <h2 id="home-username" style="margin-bottom: 30px;">User</h2>
+            <button id="start-btn" class="btn">START MATCHING</button>
         </div>
 
-        <div id="tab-messages" class="screen-content list-screen hidden">
-            <h2 style="margin-bottom: 20px;">Messages</h2>
-            <div id="messages-list">
-                <p style="text-align: center; color: #666; margin-top: 50px;">Add friends in video call to chat!</p>
+        <!-- Messages Tab -->
+        <div id="messages-tab" class="tab-content">
+            <h2 style="margin-bottom: 20px;">Friends</h2>
+            <div id="friends-list">
+                <!-- Friends loaded via JS -->
             </div>
         </div>
 
-        <div id="tab-profile" class="screen-content list-screen hidden">
-            <h2 style="margin-bottom: 10px;">My Profile</h2>
-            <div class="profile-card">
-                
-                <div class="profile-img-container" onclick="triggerUpload()">
-                    <img id="profile-dp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-pic-lg" referrerpolicy="no-referrer">
-                    <div class="edit-icon"><i class="fas fa-camera"></i></div>
+        <!-- Profile Tab -->
+        <div id="profile-tab" class="tab-content">
+            <div class="profile-header">
+                <div style="position: relative; display: inline-block;">
+                    <img src="" id="profile-avatar" class="user-avatar" style="width: 100px; height: 100px;" referrerpolicy="no-referrer">
+                    <button class="btn" style="position: absolute; bottom: 0; right: -10px; padding: 5px 10px; border-radius: 50%;" onclick="document.getElementById('custom-file-upload').click()">
+                        <i class="fas fa-camera"></i>
+                    </button>
                 </div>
-                <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="uploadPhoto(this)">
-
-                <span class="label">Full Name</span>
-                <h3 id="profile-name">User</h3>
-                
-                <span class="label">Date of Birth</span>
-                <input type="date" id="dob-input" class="glass-input" onchange="saveDOB()">
-                
-                <span class="label">Subscription</span>
-                <div id="plan-status" style="color: #aaa; font-weight: bold;">Free Plan</div>
-
-                <button id="btn-upgrade" class="vip-buy-btn" onclick="buySubscription()">
-                    <i class="fas fa-crown"></i> Upgrade to VIP (₹199)
-                </button>
-
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <input type="file" id="custom-file-upload" accept="image/*">
+                <h3 id="profile-name" style="margin-top: 10px;">User</h3>
+                <span id="vip-status" class="vip-badge">VIP MEMBER</span>
             </div>
+
+            <div class="input-group">
+                <label>Date of Birth</label>
+                <input type="date" id="dob-input">
+            </div>
+            
+            <button id="save-profile-btn" class="btn btn-outline" style="width: 100%; margin-bottom: 15px;">Save Profile</button>
+            <button id="upgrade-btn" class="btn" style="width: 100%; margin-bottom: 15px; background: gold; color: black;">Upgrade to VIP (₹199)</button>
+            <button id="logout-btn" class="btn btn-outline" style="width: 100%; border-color: #ff3333; color: #ff3333;">Logout</button>
         </div>
 
-        <div id="ad-banner">
-            <span class="ad-text">[ AdMob Banner Area ]</span>
-        </div>
-
-        <div class="bottom-nav">
-            <i class="fas fa-fire nav-icon active" onclick="switchTab('home', this)"></i>
-            <i class="fas fa-comment-alt nav-icon" onclick="switchTab('messages', this)"></i>
-            <i class="fas fa-user nav-icon" onclick="switchTab('profile', this)"></i>
-        </div>
     </div>
 
-    <div id="video-screen">
-        <div id="remote-video"></div>
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav hidden" id="nav-bar">
+        <div class="nav-item active" data-tab="home-tab"><i class="fas fa-video"></i></div>
+        <div class="nav-item" data-tab="messages-tab"><i class="fas fa-comment-alt"></i></div>
+        <div class="nav-item" data-tab="profile-tab"><i class="fas fa-user"></i></div>
+    </nav>
+
+    <!-- Ad Banner -->
+    <div id="ad-banner" class="hidden">
+        [AdMob Banner Space - 320x50]
+    </div>
+
+    <!-- Video Overlay (Zego + Custom Controls) -->
+    <div id="video-overlay">
+        <div id="zego-mount"></div>
         
-        <div class="video-ui">
-            <div class="v-header" id="v-status">Connected</div>
-            <div class="add-friend-btn" onclick="addFriend()">
-                <i class="fas fa-user-plus" style="color: white; font-size: 1.2rem;"></i>
+        <!-- Searching Loader Overlay (Inside Video Div) -->
+        <div id="searching-overlay">
+            <div class="avatar-container animate-radar">
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <img src="" id="search-avatar" class="user-avatar" referrerpolicy="no-referrer">
             </div>
-            <div class="v-controls">
-                <button class="ctrl-btn" style="background:#e74c3c" onclick="stopMatchingCycle()"><i class="fas fa-times"></i></button>
-                <button class="ctrl-btn btn-next" onclick="nextCall()">
-                    <span>NEXT</span> <i class="fas fa-forward"></i>
-                </button>
-            </div>
+            <h3 style="margin-top: 20px;">Finding Partner...</h3>
         </div>
 
-        <div id="matching-loader">
-            <div class="loader-ring"></div>
-            <h3>Searching...</h3>
-            <button onclick="stopMatchingCycle()" style="margin-top:20px; background:none; border:1px solid #666; color:#888; padding:5px 15px; border-radius:20px;">Cancel</button>
+        <button class="control-btn btn-friend" id="add-friend-btn"><i class="fas fa-user-plus"></i></button>
+
+        <div class="video-controls">
+            <button class="control-btn btn-stop" id="stop-call-btn"><i class="fas fa-times"></i></button>
+            <button class="control-btn btn-next" id="next-match-btn">NEXT <i class="fas fa-chevron-right" style="margin-left: 5px;"></i></button>
         </div>
     </div>
 
-    <div id="chat-interface">
-        <div class="chat-head">
-            <i class="fas fa-arrow-left" onclick="closeChat()" style="font-size: 1.2rem; cursor: pointer;"></i>
-            <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%; object-fit: cover;" referrerpolicy="no-referrer">
-            <strong id="chat-h-name">Name</strong>
+    <!-- Chat Overlay -->
+    <div id="chat-overlay">
+        <div class="chat-header">
+            <i class="fas fa-arrow-left" id="close-chat" style="cursor: pointer; padding: 10px;"></i>
+            <img src="" id="chat-friend-img" style="width: 35px; height: 35px; border-radius: 50%;">
+            <span id="chat-friend-name" style="font-weight: 600;">Friend</span>
         </div>
-        <div id="chat-box" class="chat-body"></div>
-        <div class="chat-foot">
-            <input type="text" id="msg-in" class="glass-input" style="margin:0; border-radius:20px;" placeholder="Type message...">
-            <button onclick="sendMsg()" style="background:var(--primary-pink); border:none; width:45px; border-radius:50%; color:white;"><i class="fas fa-paper-plane"></i></button>
+        <div class="chat-body" id="chat-body">
+            <!-- Messages -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="msg-input" placeholder="Type a message..." style="flex: 1; padding: 10px; border-radius: 20px; border: none; outline: none;">
+            <button id="send-msg-btn" class="btn" style="padding: 10px 15px;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
     <script type="module">
+        // --- 1. CONFIGURATION ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, onValue, remove, push, get, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, update, onValue, get, push, remove, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
@@ -236,298 +310,403 @@
             messagingSenderId: "169038218786",
             appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
-        const appID = 2013687880; 
-        const serverSecret = "2576346c100ee42b720e88db26d01e53";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // DEFAULT AVATAR (Fallback)
-        const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        // Zego Config
+        const ZEGO_APP_ID = 2013687880;
+        const ZEGO_SERVER_SECRET = "2576346c100ee42b720e88db26d01e53";
 
+        // Razorpay Config
+        const RAZORPAY_KEY = "rzp_live_SBirtJRkaeGMgl";
+
+        // State Variables
         let currentUser = null;
-        let zp = null;
-        let currentPartnerID = null;
-        let myQueueKey = null;
-        let activeChatID = null;
+        let zp = null; // Zego Instance
+        let currentRoomId = null;
+        let currentPartnerId = null;
         let isSearching = false;
+        let activeChatFriendId = null;
 
-        // AUTH
-        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
-        window.logout = () => {
-            if(confirm("Logout?")) signOut(auth);
-        };
+        // --- 2. AUTHENTICATION ---
+        const loginBtn = document.getElementById('login-btn');
+        const authScreen = document.getElementById('auth-screen');
+        const appContainer = document.getElementById('app-container');
+        const navBar = document.getElementById('nav-bar');
+        const adBanner = document.getElementById('ad-banner');
 
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
+        loginBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => console.error(err));
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
                 currentUser = user;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
+                authScreen.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                navBar.classList.remove('hidden');
                 
-                // Initial Load (Use Google Photo First)
-                updateProfileUI(user.displayName, user.photoURL);
+                // Load User Data
+                const userRef = ref(db, `users/${user.uid}`);
+                const snapshot = await get(userRef);
+                const userData = snapshot.val() || {};
+
+                // Update UI with Photo (Custom or Google)
+                const photoURL = userData.customPhoto || user.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+                updateAllAvatars(photoURL);
                 
-                // Then Load from DB (in case user uploaded a custom photo)
-                loadUserData();
+                document.getElementById('home-username').innerText = user.displayName;
+                document.getElementById('profile-name').innerText = user.displayName;
+
+                if (userData.subscription === 'VIP') {
+                    document.getElementById('vip-status').style.display = 'inline-block';
+                    adBanner.classList.add('hidden');
+                } else {
+                    adBanner.classList.remove('hidden');
+                }
+
+                // Initialize Database Entry
+                update(userRef, {
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    online: true
+                });
+
+                loadFriendsList();
+
             } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('hidden');
+                currentUser = null;
+                authScreen.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+                navBar.classList.add('hidden');
+                adBanner.classList.add('hidden');
             }
         });
 
-        // Update UI helper
-        function updateProfileUI(name, photo) {
-            const finalPhoto = photo || DEFAULT_AVATAR;
-            document.getElementById('home-dp').src = finalPhoto;
-            document.getElementById('profile-dp').src = finalPhoto;
-            document.getElementById('profile-name').innerText = name || "User";
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        function updateAllAvatars(url) {
+            document.getElementById('home-avatar').src = url;
+            document.getElementById('profile-avatar').src = url;
+            document.getElementById('search-avatar').src = url;
         }
 
-        function loadUserData() {
-            const uRef = ref(db, `users/${currentUser.uid}`);
-            onValue(uRef, (snap) => {
-                if(snap.exists()) {
-                    const d = snap.val();
-                    
-                    // IF CUSTOM PHOTO EXISTS, OVERRIDE GOOGLE PHOTO
-                    if(d.customPhoto) {
-                        updateProfileUI(d.displayName, d.customPhoto);
-                    } else {
-                        // Keep Google Photo
-                        updateProfileUI(d.displayName || currentUser.displayName, d.photoURL || currentUser.photoURL);
-                    }
-
-                    // DOB
-                    if(d.dob) document.getElementById('dob-input').value = d.dob;
-                    
-                    // VIP Check
-                    if(d.subscription === 'VIP') {
-                        document.getElementById('vip-tag').style.display = 'block';
-                        document.getElementById('plan-status').innerText = "VIP Member (Active)";
-                        document.getElementById('plan-status').style.color = "#ffd700";
-                        document.getElementById('btn-upgrade').style.display = 'none'; 
-                        document.getElementById('ad-banner').style.display = 'none'; 
-                    }
-                }
-            });
-            loadFriends();
-        }
-
-        // --- NEW: PHOTO UPLOAD LOGIC ---
-        window.triggerUpload = () => document.getElementById('file-upload').click();
-
-        window.uploadPhoto = (input) => {
-            if(input.files && input.files[0]) {
-                const file = input.files[0];
-                
-                // Limit size to 1MB (Database restriction)
-                if(file.size > 1048576) {
-                    alert("Image too big! Please pick a smaller image (under 1MB).");
-                    return;
-                }
-
+        // --- 3. PROFILE & IMAGE UPLOAD ---
+        const fileInput = document.getElementById('custom-file-upload');
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64String = e.target.result;
-                    // Save to Database
-                    update(ref(db, `users/${currentUser.uid}`), {
-                        customPhoto: base64String
-                    });
-                    // Immediate UI Update
-                    document.getElementById('profile-dp').src = base64String;
-                    document.getElementById('home-dp').src = base64String;
+                reader.onloadend = () => {
+                    const base64String = reader.result;
+                    // Save to Firebase
+                    update(ref(db, `users/${currentUser.uid}`), { customPhoto: base64String });
+                    updateAllAvatars(base64String);
                 };
                 reader.readAsDataURL(file);
             }
-        };
+        });
 
-        window.saveDOB = () => {
+        document.getElementById('save-profile-btn').addEventListener('click', () => {
             const dob = document.getElementById('dob-input').value;
-            update(ref(db, `users/${currentUser.uid}`), { dob: dob });
-        };
+            if(dob) update(ref(db, `users/${currentUser.uid}`), { dob: dob });
+            alert("Profile Saved!");
+        });
 
-        // --- MATCHING LOGIC ---
-        window.startMatchingCycle = () => {
-            isSearching = true;
-            document.getElementById('video-screen').style.display = 'block';
-            nextCall(); 
-        };
+        // --- 4. NAVIGATION ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        window.stopMatchingCycle = () => {
-            isSearching = false;
-            if(zp) zp.destroy();
-            if(myQueueKey) remove(ref(db, `queue/${myQueueKey}`));
-            document.getElementById('video-screen').style.display = 'none';
-        };
-
-        window.nextCall = () => {
-            if(!isSearching) return;
-            if(zp) zp.destroy();
-            document.getElementById('remote-video').innerHTML = ""; 
-            document.getElementById('matching-loader').style.display = 'flex'; 
-            findMatch();
-        };
-
-        async function findMatch() {
-            const queueRef = ref(db, 'queue');
-            get(queueRef).then((snap) => {
-                let found = false;
-                if(snap.exists()) {
-                    snap.forEach(child => {
-                        const data = child.val();
-                        if(!found && data.uid !== currentUser.uid && !data.matched) {
-                            found = true;
-                            set(ref(db, `queue/${child.key}/matched`), currentUser.uid);
-                            currentPartnerID = data.uid;
-                            joinVideo(child.key);
-                        }
-                    });
-                }
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
                 
-                if(!found) {
-                    myQueueKey = push(queueRef).key;
-                    set(ref(db, `queue/${myQueueKey}`), { uid: currentUser.uid, matched: false });
-                    onValue(ref(db, `queue/${myQueueKey}`), (s) => {
-                        const d = s.val();
-                        if(d && d.matched) {
-                            currentPartnerID = d.matched;
-                            joinVideo(myQueueKey);
-                            remove(ref(db, `queue/${myQueueKey}`));
-                            myQueueKey = null;
-                        }
-                    });
-                    onDisconnect(ref(db, `queue/${myQueueKey}`)).remove();
-                }
+                tabContents.forEach(t => t.classList.remove('active'));
+                document.getElementById(item.dataset.tab).classList.add('active');
             });
-        }
+        });
 
-        function joinVideo(roomID) {
-            document.getElementById('matching-loader').style.display = 'none';
-            get(ref(db, `users/${currentPartnerID}`)).then(s => {
-                const n = s.exists() && s.val().displayName ? s.val().displayName : "New Friend";
-                document.getElementById('v-status').innerText = "Connected: " + n;
-            });
+        // --- 5. MATCHING ALGORITHM (Omegle Logic) ---
+        const startBtn = document.getElementById('start-btn');
+        const videoOverlay = document.getElementById('video-overlay');
+        const searchingOverlay = document.getElementById('searching-overlay');
+        const radarAnim = document.getElementById('radar-anim');
 
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName);
-            zp = ZegoUIKitPrebuilt.create(kitToken);
-            zp.joinRoom({
-                container: document.getElementById('remote-video'),
-                scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
-                showPreJoinView: false,
-                showLeavingView: false, 
-                onLeaveRoom: () => {
-                    nextCall(); 
-                }
-            });
-        }
+        startBtn.addEventListener('click', () => {
+            videoOverlay.style.display = 'block';
+            searchingOverlay.style.display = 'flex';
+            document.getElementById('zego-mount').innerHTML = ''; // Clear prev
+            startMatching();
+        });
 
-        // --- FRIEND & CHAT ---
-        window.addFriend = () => {
-            if(currentPartnerID) {
-                update(ref(db, `users/${currentUser.uid}/friends/${currentPartnerID}`), { since: Date.now() });
-                update(ref(db, `users/${currentPartnerID}/friends/${currentUser.uid}`), { since: Date.now() });
-                alert("Friend Added! Check Messages Tab.");
-            }
-        };
+        async function startMatching() {
+            if(isSearching) return;
+            isSearching = true;
 
-        function loadFriends() {
-            onValue(ref(db, `users/${currentUser.uid}/friends`), async (snap) => {
-                const box = document.getElementById('messages-list');
-                box.innerHTML = "";
-                if(snap.exists()) {
-                    const ids = Object.keys(snap.val());
-                    for(const fid of ids) {
-                        const s = await get(ref(db, `users/${fid}`));
-                        if(s.exists()) {
-                            const u = s.val();
-                            // Check for custom photo OR google photo
-                            const photo = u.customPhoto || u.photoURL || DEFAULT_AVATAR;
-                            
-                            const div = document.createElement('div');
-                            div.className = 'list-item';
-                            div.innerHTML = `
-                                <img src="${photo}" class="u-avatar" referrerpolicy="no-referrer">
-                                <div class="u-info">
-                                    <div class="u-name">${u.displayName}</div>
-                                    <div class="u-msg">Tap to chat</div>
-                                </div>
-                                <i class="fas fa-comment-dots" style="color:#666"></i>
-                            `;
-                            div.onclick = () => openChat(fid, u.displayName, photo);
-                            box.appendChild(div);
-                        }
+            const queueRef = ref(db, 'queue');
+            
+            // 1. Check queue for others
+            const snapshot = await get(queueRef);
+            let foundMatch = false;
+
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const potentialPartnerId = child.key;
+                    // Don't match with self
+                    if (potentialPartnerId !== currentUser.uid && !foundMatch) {
+                        foundMatch = true;
+                        currentPartnerId = potentialPartnerId;
+                        currentRoomId = child.val().roomId; // Join their room
+                        
+                        // Remove them from queue (handshake)
+                        remove(ref(db, `queue/${potentialPartnerId}`));
+                        
+                        // Signal them that we matched (Optional, but Zego handles presence)
+                        startVideoCall(currentRoomId);
                     }
+                });
+            }
+
+            // 2. If no match found, Add self to queue
+            if (!foundMatch) {
+                const newRoomId = `room_${currentUser.uid}_${Date.now()}`;
+                currentRoomId = newRoomId;
+                
+                // Add to queue and wait
+                set(ref(db, `queue/${currentUser.uid}`), {
+                    roomId: newRoomId,
+                    timestamp: serverTimestamp()
+                });
+
+                // Listen if I get removed from queue (meaning someone matched me)
+                const myQueueRef = ref(db, `queue/${currentUser.uid}`);
+                const unsubscribe = onValue(myQueueRef, (snap) => {
+                    if (isSearching && !snap.exists()) {
+                        // Node deleted, someone picked me!
+                        offValue(myQueueRef); // Stop listening
+                        startVideoCall(currentRoomId);
+                    }
+                });
+
+                // Function to detach listener if we cancel
+                window.cancelSearch = () => {
+                     remove(myQueueRef);
+                     offValue(myQueueRef); // Use correct way to remove listener in v9 modular if needed, or keeping ref
+                     isSearching = false;
+                };
+            }
+        }
+
+        function offValue(reference) {
+            // Helper to remove listeners (simplified)
+             onValue(reference, () => {}); 
+        }
+
+        // --- 6. ZEGOCLOUD VIDEO LOGIC ---
+        async function startVideoCall(roomID) {
+            isSearching = false;
+            searchingOverlay.style.display = 'none';
+
+            // Generate Token
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+                ZEGO_APP_ID, 
+                ZEGO_SERVER_SECRET, 
+                roomID, 
+                currentUser.uid, 
+                currentUser.displayName || "User"
+            );
+
+            // Create Instance
+            zp = ZegoUIKitPrebuilt.create(kitToken);
+
+            // Join Room
+            zp.joinRoom({
+                container: document.getElementById('zego-mount'),
+                scenario: {
+                    mode: ZegoUIKitPrebuilt.OneONOneCall,
+                },
+                showPreJoinView: false,
+                turnOnCameraWhenJoining: true,
+                turnOnMicrophoneWhenJoining: true,
+                showLeaveRoomConfirmDialog: false,
+                showUserList: false,
+                showRoomTimer: false,
+                layout: "Auto",
+                onJoinRoom: () => {
+                   // Logic when joined
+                },
+                onLeaveRoom: () => {
+                    // Logic when left
+                }
+            });
+
+            // Hide Zego's default bottom bar with CSS injection if needed
+            // But we have our overlay controls with high Z-Index
+        }
+
+        // --- 7. VIDEO CONTROLS (Next, Stop, Add Friend) ---
+        
+        // NEXT Button (Zero Reload)
+        document.getElementById('next-match-btn').addEventListener('click', async () => {
+            if (zp) {
+                zp.destroy();
+                zp = null;
+            }
+            // If I was in queue, remove myself
+            if(isSearching) remove(ref(db, `queue/${currentUser.uid}`));
+
+            // UI Reset
+            document.getElementById('zego-mount').innerHTML = ''; 
+            searchingOverlay.style.display = 'flex';
+            
+            // Restart Match
+            startMatching();
+        });
+
+        // STOP Button
+        document.getElementById('stop-call-btn').addEventListener('click', () => {
+            if (zp) {
+                zp.destroy();
+                zp = null;
+            }
+            if(isSearching) remove(ref(db, `queue/${currentUser.uid}`));
+            
+            isSearching = false;
+            videoOverlay.style.display = 'none';
+        });
+
+        // ADD FRIEND Button
+        document.getElementById('add-friend-btn').addEventListener('click', async () => {
+            if(!currentPartnerId) {
+                alert("Wait for a user to join!");
+                return;
+            }
+            // Add to my friends
+            await update(ref(db, `users/${currentUser.uid}/friends/${currentPartnerId}`), { addedAt: serverTimestamp() });
+            alert("Friend Added!");
+        });
+
+
+        // --- 8. CHAT & FRIENDS SYSTEM ---
+        
+        function loadFriendsList() {
+            const friendsRef = ref(db, `users/${currentUser.uid}/friends`);
+            onValue(friendsRef, async (snapshot) => {
+                const listEl = document.getElementById('friends-list');
+                listEl.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const friendId = child.key;
+                        // Fetch Friend Details
+                        get(ref(db, `users/${friendId}`)).then(userSnap => {
+                            if(userSnap.exists()) {
+                                const fData = userSnap.val();
+                                const div = document.createElement('div');
+                                div.className = 'friend-item';
+                                div.innerHTML = `
+                                    <img src="${fData.customPhoto || fData.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="friend-img" referrerpolicy="no-referrer">
+                                    <div class="friend-info">
+                                        <h4>${fData.displayName}</h4>
+                                        <p>Click to chat</p>
+                                    </div>
+                                `;
+                                div.onclick = () => openChat(friendId, fData);
+                                listEl.appendChild(div);
+                            }
+                        });
+                    });
                 } else {
-                    box.innerHTML = `<p style="text-align:center; color:#666; margin-top:50px;">No friends yet.</p>`;
+                    listEl.innerHTML = '<p style="text-align:center; margin-top:20px; color:#666;">No friends yet.</p>';
                 }
             });
         }
 
-        // --- SUBSCRIPTION ---
-        window.buySubscription = () => {
-            var options = {
-                "key": "rzp_live_SBirtJRkaeGMgl", 
-                "amount": "19900", 
+        const chatOverlay = document.getElementById('chat-overlay');
+        const chatBody = document.getElementById('chat-body');
+        
+        function openChat(friendId, friendData) {
+            activeChatFriendId = friendId;
+            chatOverlay.classList.add('open');
+            document.getElementById('chat-friend-name').innerText = friendData.displayName;
+            document.getElementById('chat-friend-img').src = friendData.customPhoto || friendData.photoURL;
+            
+            loadMessages(friendId);
+        }
+
+        document.getElementById('close-chat').addEventListener('click', () => {
+            chatOverlay.classList.remove('open');
+            activeChatFriendId = null;
+        });
+
+        function getChatId(uid1, uid2) {
+            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+        }
+
+        function loadMessages(friendId) {
+            const chatId = getChatId(currentUser.uid, friendId);
+            const msgsRef = ref(db, `messages/${chatId}`);
+            
+            // Remove previous listener if complex app, here we just overwrite
+            onValue(msgsRef, (snapshot) => {
+                chatBody.innerHTML = '';
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const msg = child.val();
+                        const div = document.createElement('div');
+                        div.className = `chat-msg ${msg.sender === currentUser.uid ? 'msg-mine' : 'msg-theirs'}`;
+                        div.innerText = msg.text;
+                        chatBody.appendChild(div);
+                    });
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+            });
+        }
+
+        document.getElementById('send-msg-btn').addEventListener('click', sendMessage);
+        
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(!text || !activeChatFriendId) return;
+
+            const chatId = getChatId(currentUser.uid, activeChatFriendId);
+            push(ref(db, `messages/${chatId}`), {
+                sender: currentUser.uid,
+                text: text,
+                timestamp: serverTimestamp()
+            });
+            input.value = '';
+        }
+
+        // --- 9. PAYMENTS (Razorpay) ---
+        document.getElementById('upgrade-btn').addEventListener('click', () => {
+            const options = {
+                "key": RAZORPAY_KEY, 
+                "amount": "19900", // 199.00 INR
                 "currency": "INR",
                 "name": "ExploreMeet VIP",
-                "description": "1 Month Ad-Free Access",
-                "handler": function (response){
-                    update(ref(db, `users/${currentUser.uid}`), {
-                        subscription: 'VIP',
-                        subExpiry: Date.now() + (30*24*60*60*1000)
-                    });
-                    alert("Welcome to VIP! Ads Removed.");
+                "description": "1 Month VIP Subscription",
+                "image": "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                "handler": function (response) {
+                    if (response.razorpay_payment_id) {
+                        // Success
+                        update(ref(db, `users/${currentUser.uid}`), { subscription: 'VIP' });
+                        alert("Upgrade Successful! You are now VIP.");
+                        document.getElementById('vip-status').style.display = 'inline-block';
+                        adBanner.classList.add('hidden');
+                    }
                 },
                 "theme": { "color": "#ff0055" }
             };
-            var rzp = new Razorpay(options);
-            rzp.open();
-        };
-
-        // --- CHAT UI ---
-        window.openChat = (uid, name, pic) => {
-            activeChatID = uid;
-            document.getElementById('chat-interface').style.display = 'flex';
-            document.getElementById('chat-h-name').innerText = name;
-            document.getElementById('chat-h-img').src = pic || DEFAULT_AVATAR;
-            
-            const room = [currentUser.uid, uid].sort().join('_');
-            onValue(ref(db, `chats/${room}`), (snap) => {
-                const b = document.getElementById('chat-box');
-                b.innerHTML = "";
-                if(snap.exists()) {
-                    snap.forEach(c => {
-                        const m = c.val();
-                        const isMe = m.sender === currentUser.uid;
-                        b.innerHTML += `<div class="msg ${isMe ? 'msg-me' : 'msg-other'}">${m.text}</div>`;
-                    });
-                    b.scrollTop = b.scrollHeight;
-                }
-            });
-        };
-
-        window.closeChat = () => {
-            document.getElementById('chat-interface').style.display = 'none';
-            activeChatID = null;
-        };
-
-        window.sendMsg = () => {
-            const t = document.getElementById('msg-in').value;
-            if(t && activeChatID) {
-                const room = [currentUser.uid, activeChatID].sort().join('_');
-                push(ref(db, `chats/${room}`), { sender: currentUser.uid, text: t, time: Date.now() });
-                document.getElementById('msg-in').value = "";
-            }
-        };
-
-        // NAVIGATION
-        window.switchTab = (t, el) => {
-            document.querySelectorAll('.screen-content').forEach(d => d.classList.add('hidden'));
-            document.getElementById('tab-'+t).classList.remove('hidden');
-            document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-        };
+            const rzp1 = new Razorpay(options);
+            rzp1.open();
+        });
 
     </script>
 </body>
