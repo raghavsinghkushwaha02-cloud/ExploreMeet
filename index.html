@@ -3,221 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EMLive - Random Video Chat</title>
+    <title>EMLive - Perfect App</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* --- THEME VARIABLES (Based on images) --- */
+        /* --- THEME SETTINGS --- */
         :root {
-            --bg-dark: #0a0a12; /* Deep dark background */
-            --bg-card: #151520;
-            --primary-pink: #ff0055; /* Neon pink accent */
+            --bg-dark: #0a0a12;
+            --primary-pink: #ff0055;
             --text-white: #ffffff;
-            --text-muted: #888899;
+            --card-bg: #151520;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; background-color: var(--bg-dark); color: var(--text-white); overflow: hidden; }
 
-        /* --- UTILITIES --- */
+        /* --- UTILITY CLASSES --- */
         .hidden { display: none !important; }
-        .btn-icon { border: none; background: none; color: var(--text-white); font-size: 1.5rem; cursor: pointer; }
-        .glass-input { width: 100%; padding: 15px 20px 15px 50px; background: rgba(255,255,255,0.08); border: none; border-radius: 30px; color: white; font-size: 1rem; outline: none; }
-        .search-icon-pos { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .glass-btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; cursor: pointer; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; }
 
-        /* --- APP CONTAINER & HEADER --- */
-        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 70px; /* space for nav bar */ }
-        .app-header { padding: 20px; font-weight: 800; font-size: 1.5rem; letter-spacing: 1px; }
-        .brand-pink { color: var(--primary-pink); }
+        /* --- 1. LOGIN SCREEN --- */
+        #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; font-weight: bold; border: none; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 
-        /* --- LOGIN SCREEN --- */
-        #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; border: none; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3); }
-
-        /* --- HOME SCREEN (Radar & Start Btn - Img 15,16) --- */
-        .home-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        /* --- 2. MAIN APP --- */
+        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 80px; }
         
-        .radar-wrapper { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
-        .my-avatar-home { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; z-index: 2; position: relative; }
-        .radar-ring { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; opacity: 0; animation: radarWave 3s infinite linear; }
-        .radar-ring:nth-child(2) { animation-delay: 1s; }
-        .radar-ring:nth-child(3) { animation-delay: 2s; }
-        @keyframes radarWave { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        /* HEADER */
+        .header { padding: 20px; font-size: 1.5rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        .brand { color: var(--primary-pink); }
 
-        .start-btn-container { margin-top: auto; margin-bottom: 50px; }
+        /* SCREENS */
+        .screen-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; }
+        
+        /* HOME - RADAR */
+        .home-center { align-items: center; justify-content: center; text-align: center; }
+        .radar-box { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
+        .my-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid white; object-fit: cover; z-index: 2; position: relative; }
+        .pulse { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; animation: pulse 2.5s infinite; opacity: 0; }
+        .pulse:nth-child(2) { animation-delay: 0.8s; }
+        @keyframes pulse { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+
         .start-btn { 
-            background: linear-gradient(to right, var(--primary-pink), #ff4444); 
-            color: white; border: none; padding: 20px 80px; border-radius: 50px; 
-            font-size: 1.5rem; font-weight: 800; cursor: pointer; 
-            display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 10px 40px rgba(255, 0, 85, 0.5); /* Pink glow */
+            background: linear-gradient(90deg, var(--primary-pink), #ff4444); color: white; border: none;
+            padding: 18px 80px; border-radius: 50px; font-size: 1.4rem; font-weight: bold;
+            box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4); cursor: pointer;
         }
 
-        /* --- MESSAGES & CONTACTS LISTS (Img 18, 19) --- */
-        .list-screen { padding: 20px; display: flex; flex-direction: column; height: 100%; }
-        .screen-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; }
-        .search-bar-container { position: relative; margin-bottom: 25px; }
+        /* LISTS (Friends/Messages) */
+        .list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        .list-item:active { background: rgba(255,255,255,0.05); }
+        .u-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #333; }
+        .u-info { flex: 1; }
+        .u-name { font-weight: 600; font-size: 1.1rem; }
+        .u-status { font-size: 0.8rem; color: #888; }
+        .online { color: #2ecc71; }
+
+        /* PROFILE */
+        .profile-card { background: var(--card-bg); padding: 30px; border-radius: 20px; text-align: center; margin-top: 20px; }
+        .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 10px 30px; margin-top: 20px; border-radius: 20px; cursor: pointer; }
+
+        /* NAVIGATION */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--bg-dark); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+        .nav-icon { font-size: 1.5rem; color: #666; padding: 10px; cursor: pointer; transition: 0.2s; }
+        .nav-icon.active { color: var(--primary-pink); transform: translateY(-5px); }
+
+        /* --- 3. VIDEO CALL OVERLAY --- */
+        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
+        #remote-video { width: 100%; height: 100%; }
+        .video-overlay-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 5001; }
         
-        .list-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .list-avatar { width: 55px; height: 55px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #333; }
-        .list-info { flex: 1; }
-        .list-name { font-weight: 600; font-size: 1.1rem; margin-bottom: 5px; }
-        .list-sub { color: var(--text-muted); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;}
-        .list-meta { text-align: right; color: var(--text-muted); font-size: 0.8rem; }
-        .online-status { color: #2ecc71; font-size: 0.8rem; }
-
-        .call-actions { display: flex; gap: 15px; }
-        .call-actions i { color: var(--text-muted); font-size: 1.2rem; }
-
-        .floating-add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
-
-        /* --- BOTTOM NAVIGATION (Img 16, 18, 19) --- */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; 
-            background: var(--bg-dark); /* Matches bg */
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid rgba(255,255,255,0.05); z-index: 100;
-        }
-        .nav-item { color: var(--text-muted); font-size: 1.4rem; position: relative; padding: 10px; transition: 0.3s; }
-        .nav-item.active { color: var(--primary-pink); }
-        /* Pink dot indicator seen in images */
-        .nav-item.active::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--primary-pink); border-radius: 50%; box-shadow: 0 0 10px var(--primary-pink); }
-
-
-        /* --- VIDEO CALL SCREEN (Img 17) --- */
-        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
+        .v-header { margin-top: 40px; text-align: center; font-weight: 600; text-shadow: 0 2px 4px black; }
+        .v-controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-evenly; pointer-events: auto; }
+        .ctrl-btn { width: 60px; height: 60px; font-size: 1.2rem; }
+        .btn-end { background: var(--primary-pink); width: 75px; height: 75px; font-size: 2rem; }
         
-        /* Zego containers */
-        #remote-video-container { width: 100%; height: 100%; object-fit: cover; }
-        #local-video-container { position: absolute; bottom: 120px; right: 20px; width: 100px; height: 150px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); z-index: 2002; }
+        .add-friend-btn { position: absolute; top: 50px; right: 20px; width: 50px; height: 50px; pointer-events: auto; background: rgba(0,0,0,0.5); }
 
-        /* Video Overlay UI */
-        .video-header { position: absolute; top: 40px; width: 100%; text-align: center; z-index: 2003; font-weight: 600; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.95); z-index: 5002; display: none; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* --- 4. CHAT OVERLAY --- */
+        #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 6000; display: none; flex-direction: column; }
+        .chat-head { padding: 15px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; }
+        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .chat-input-area { padding: 10px; background: var(--card-bg); display: flex; gap: 10px; }
         
-        /* Top floating buttons (Chat & Friend) - Img 17 top corners */
-        .top-float-btn { position: absolute; top: 50px; width: 50px; height: 50px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.2rem; z-index: 2003; cursor: pointer; }
-        #btn-float-chat { left: 20px; }
-        #btn-float-friend { right: 20px; }
-
-        /* Bottom Controls Bar - Img 17 bottom */
-        .video-controls { 
-            position: absolute; bottom: 30px; width: 100%; 
-            display: flex; justify-content: space-evenly; align-items: center; 
-            z-index: 2003; 
-        }
-        .control-btn { width: 55px; height: 55px; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; cursor: pointer; border: none; color: white;}
-        .btn-end-call { width: 75px; height: 75px; background: var(--primary-pink); font-size: 2rem; box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4); }
-
-        /* Loading overlay for matching */
-        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.9); z-index: 2004; display: none; flex-direction: column; justify-content: center; align-items: center; }
-
+        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; word-wrap: break-word; font-size: 0.95rem; }
+        .msg-me { background: var(--primary-pink); align-self: flex-end; border-bottom-right-radius: 5px; }
+        .msg-other { background: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
+        
+        .c-input { flex: 1; background: #0a0a12; border: none; padding: 12px 20px; border-radius: 25px; color: white; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="app-header" style="font-size: 2.5rem; margin-bottom: 50px;">EM<span class="brand-pink">Live</span></div>
-        <button id="google-login-btn" class="login-btn">
-            <i class="fab fa-google"></i> Login with Google
-        </button>
+        <h1 style="margin-bottom: 40px; font-size: 2.5rem;">EM<span class="brand">Live</span></h1>
+        <button class="login-btn" onclick="login()"><i class="fab fa-google"></i> Login with Google</button>
     </div>
-
 
     <div id="app-container" class="hidden">
         
-        <div class="app-header" id="main-header">EM<span class="brand-pink">Live</span></div>
+        <div class="header">
+            <span>EM<span class="brand">Live</span></span>
+        </div>
 
-        <div id="tab-home" class="screen-content home-content">
-            <div class="radar-wrapper">
-                <div class="radar-ring"></div>
-                <div class="radar-ring"></div>
-                <img id="my-home-avatar" src="" class="my-avatar-home">
+        <div id="screen-home" class="screen-content home-center">
+            <div class="radar-box">
+                <div class="pulse"></div><div class="pulse"></div>
+                <img id="home-dp" src="" class="my-avatar">
             </div>
-            <h2 style="font-size: 2rem; margin-bottom: 10px;">Find Your Match</h2>
-            <p style="color: var(--text-muted);">Random Video Chat</p>
+            <h2 style="margin-bottom: 10px;">Find Match</h2>
+            <p style="color: #888; margin-bottom: 50px;">Connect with random people</p>
+            <button class="start-btn" onclick="startMatching()">START</button>
+        </div>
 
-            <div class="start-btn-container">
-                <button class="start-btn" onclick="startMatchingBtnClick()">
-                    <i class="fas fa-video"></i> START
-                </button>
+        <div id="screen-friends" class="screen-content hidden">
+            <h2 style="margin-bottom: 20px;">Friends & Chats</h2>
+            <div id="friend-list-ui">
+                <p style="text-align:center; color:#666; margin-top:50px;">Add friends in video call to chat!</p>
             </div>
         </div>
 
-
-        <div id="tab-messages" class="screen-content list-screen hidden">
-            <div class="screen-title">Messages</div>
-            <div class="search-bar-container">
-                <i class="fas fa-search search-icon-pos"></i>
-                <input type="text" class="glass-input" placeholder="Search messages">
+        <div id="screen-profile" class="screen-content hidden">
+            <h2 style="margin-bottom: 20px;">My Profile</h2>
+            <div class="profile-card">
+                <img id="profile-dp" src="" class="my-avatar">
+                <h2 id="profile-name" style="margin-top: 15px;">User</h2>
+                <p id="profile-email" style="color: #888;">email@gmail.com</p>
+                <button class="logout-btn" onclick="logout()">LOGOUT</button>
             </div>
-            <div id="messages-list">
-                <div class="list-item">
-                    <img src="https://i.pravatar.cc/100?img=5" class="list-avatar">
-                    <div class="list-info"><div class="list-name">Priya</div><div class="list-sub">Hey, that was fun! Let's chat...</div></div>
-                    <div class="list-meta">Now</div>
-                </div>
-                <div class="list-item">
-                    <img src="https://i.pravatar.cc/100?img=8" class="list-avatar">
-                    <div class="list-info"><div class="list-name">Rahul</div><div class="list-sub">Hi, how are you doing?</div></div>
-                    <div class="list-meta">Now</div>
-                </div>
-                </div>
-            <div class="floating-add-btn"><i class="fas fa-plus"></i></div>
         </div>
-
-
-        <div id="tab-contacts" class="screen-content list-screen hidden">
-            <div class="screen-title">Contacts</div>
-            <div class="search-bar-container">
-                <i class="fas fa-search search-icon-pos"></i>
-                <input type="text" class="glass-input" placeholder="Search friends">
-            </div>
-            <div id="contacts-list">
-                <p style="color: var(--text-muted); text-align: center; margin-top: 20px;">Loading friends...</p>
-            </div>
-            <div class="floating-add-btn"><i class="fas fa-plus"></i></div>
-        </div>
-
 
         <div class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-fire"></i></div>
-            <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment-dots"></i></div>
-            <div class="nav-item" onclick="switchTab('contacts', this)"><i class="fas fa-user-friends"></i></div>
-            <div class="nav-item"><i class="fas fa-user"></i></div>
+            <i class="fas fa-fire nav-icon active" onclick="switchTab('home', this)"></i>
+            <i class="fas fa-comment-dots nav-icon" onclick="switchTab('friends', this)"></i>
+            <i class="fas fa-user nav-icon" onclick="switchTab('profile', this)"></i>
         </div>
     </div>
-
 
     <div id="video-screen">
-        <div class="video-header" id="video-partner-name">Connected to: ...</div>
-
-        <div class="top-float-btn" id="btn-float-chat" onclick="alert('Chat feature coming soon!')"><i class="fas fa-comment-alt"></i></div>
-        <div class="top-float-btn" id="btn-float-friend" onclick="addCurrentPartnerAsFriend()"><i class="fas fa-user-plus"></i></div>
-
-        <div id="remote-video-container"></div> <div id="local-video-container"></div>  <div class="video-controls">
-            <button class="control-btn"><i class="fas fa-microphone-slash"></i></button>
-            <button class="control-btn btn-end-call" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
-            <button class="control-btn"><i class="fas fa-camera-rotate"></i></button>
+        <div class="video-overlay-ui">
+            <div class="v-header" id="v-status">Connected...</div>
+            <div class="glass-btn add-friend-btn" onclick="addFriend()">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="v-controls">
+                <button class="glass-btn ctrl-btn"><i class="fas fa-microphone-slash"></i></button>
+                <button class="glass-btn btn-end" onclick="endCall()"><i class="fas fa-phone"></i></button>
+                <button class="glass-btn ctrl-btn"><i class="fas fa-camera-rotate"></i></button>
+            </div>
         </div>
-
-        <div id="matching-loader">
-            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary-pink); margin-bottom: 20px;"></i>
-            <h3>Searching for someone...</h3>
+        <div id="remote-video"></div> <div id="matching-loader">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary-pink);"></i>
+            <p style="margin-top: 20px;">Searching...</p>
         </div>
     </div>
 
+    <div id="chat-screen">
+        <div class="chat-head">
+            <i class="fas fa-arrow-left" onclick="closeChat()" style="font-size: 1.2rem;"></i>
+            <img id="chat-head-img" src="" style="width: 40px; height: 40px; border-radius: 50%;">
+            <strong id="chat-head-name">User</strong>
+        </div>
+        <div id="chat-msgs" class="chat-msgs"></div>
+        <div class="chat-input-area">
+            <input type="text" id="msg-input" class="c-input" placeholder="Type message...">
+            <button class="glass-btn" style="width: 45px; background: var(--primary-pink);" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, remove, push, get, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- CONFIGURATION (TEST CREDENTIALS - REPLACE FOR PRODUCTION) ---
+        // --- REPLACE WITH YOUR FIREBASE KEYS ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA", // Demo key
+            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
             authDomain: "exploremeet---live.firebaseapp.com",
             databaseURL: "https://exploremeet---live-default-rtdb.firebaseio.com",
             projectId: "exploremeet---live",
@@ -225,218 +191,222 @@
             messagingSenderId: "169038218786",
             appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
-        // ZegoCloud Test Credentials
         const appID = 2013687880; 
         const serverSecret = "2576346c100ee42b720e88db26d01e53";
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
         let currentUser = null;
-        let zp = null; // Zego instance
-        let currentPartnerUid = null;
-        let myQueueRef = null;
+        let zp = null; // Zego Instance
+        let currentPartnerID = null;
+        let myQueueKey = null;
+        let activeChatID = null;
 
-        // --- AUTHENTICATION ---
-        document.getElementById('google-login-btn').addEventListener('click', () => {
-            signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert(e.message));
-        });
+        // --- AUTH ---
+        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
+            if(user) {
                 currentUser = user;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 
-                // Set profile pic on home screen
-                document.getElementById('my-home-avatar').src = user.photoURL;
-                
-                // Save user to DB and set online status
-                const userRef = ref(db, `users/${user.uid}`);
-                update(userRef, {
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    status: 'online'
-                });
-                onDisconnect(userRef).update({ status: 'offline' });
+                // Update UI
+                document.getElementById('home-dp').src = user.photoURL;
+                document.getElementById('profile-dp').src = user.photoURL;
+                document.getElementById('profile-name').innerText = user.displayName;
+                document.getElementById('profile-email').innerText = user.email;
 
-                loadContacts(); // Load friends list
+                // Load Friends
+                loadFriends();
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
         });
 
-
-        // --- NAVIGATION TABS LOGIC ---
-        window.switchTab = (tabName, clickedNavEl) => {
-            // Hide all tabs
-            document.querySelectorAll('.screen-content').forEach(el => el.classList.add('hidden'));
-            // Show selected tab
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        // --- NAVIGATION ---
+        window.switchTab = (tab, el) => {
+            // Hide all screens
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
+            document.getElementById('screen-'+tab).classList.remove('hidden');
             
-            // Update active nav icon
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            clickedNavEl.classList.add('active');
-
-            // Hide header on non-home tabs based on image design
-            document.getElementById('main-header').style.display = (tabName === 'home') ? 'block' : 'none';
-        };
-
-
-        // --- MATCHING & VIDEO LOGIC ---
-        window.startMatchingBtnClick = () => {
-            // Show video screen with loader immediately
-            document.getElementById('video-screen').style.display = 'block';
-            document.getElementById('matching-loader').style.display = 'flex';
-            findMatch();
-        };
-
-        async function findMatch() {
-            const queueRef = ref(db, 'queue');
-            const snapshot = await get(queueRef);
-            let matchFound = false;
-
-            if (snapshot.exists()) {
-                // Look for someone waiting
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    if (!matchFound && data.uid !== currentUser.uid && !data.matchedWith) {
-                        matchFound = true;
-                        currentPartnerUid = data.uid;
-                        const roomID = child.key;
-                        // Mark them as matched with us
-                        set(ref(db, `queue/${roomID}/matchedWith`), currentUser.uid);
-                        // Join the room they created
-                        joinZegoRoom(roomID, currentPartnerUid);
-                    }
-                });
-            }
-
-            if (!matchFound) {
-                // No one waiting, add ourselves to queue
-                myQueueRef = push(queueRef);
-                set(myQueueRef, { uid: currentUser.uid, matchedWith: "" });
-
-                // Listen for someone matching with us
-                onValue(myQueueRef, (snap) => {
-                    const data = snap.val();
-                    if (data && data.matchedWith) {
-                        currentPartnerUid = data.matchedWith;
-                        // Someone matched us, join our own room ID
-                        joinZegoRoom(myQueueRef.key, currentPartnerUid);
-                        // Cleanup queue entry
-                        remove(myQueueRef);
-                        myQueueRef = null;
-                    }
-                });
-                // Cleanup if we disconnect while waiting
-                onDisconnect(myQueueRef).remove();
-            }
+            // Update Nav Icons
+            document.querySelectorAll('.nav-icon').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        async function joinZegoRoom(roomID, partnerUid) {
-            // Fetch partner's name for the header
-            const partnerSnap = await get(ref(db, `users/${partnerUid}`));
-            const partnerName = partnerSnap.exists() ? partnerSnap.val().displayName : "Stranger";
-            document.getElementById('video-partner-name').innerText = `Connected to: ${partnerName}`;
+        // --- MATCHING LOGIC ---
+        window.startMatching = () => {
+            document.getElementById('video-screen').style.display = 'block';
+            document.getElementById('matching-loader').style.display = 'flex';
+            
+            const queueRef = ref(db, 'queue');
+            get(queueRef).then((snap) => {
+                let found = false;
+                if(snap.exists()) {
+                    snap.forEach(child => {
+                        const data = child.val();
+                        if(!found && data.uid !== currentUser.uid && !data.matched) {
+                            found = true;
+                            // Match found!
+                            set(ref(db, `queue/${child.key}/matched`), currentUser.uid);
+                            currentPartnerID = data.uid;
+                            startVideo(child.key); // Use room ID
+                        }
+                    });
+                }
+                
+                if(!found) {
+                    // Create queue
+                    myQueueKey = push(queueRef).key;
+                    set(ref(db, `queue/${myQueueKey}`), { uid: currentUser.uid, matched: false });
+                    
+                    // Wait for match
+                    onValue(ref(db, `queue/${myQueueKey}`), (s) => {
+                        const d = s.val();
+                        if(d && d.matched) {
+                            currentPartnerID = d.matched;
+                            startVideo(myQueueKey);
+                            remove(ref(db, `queue/${myQueueKey}`)); // Clear queue
+                            myQueueKey = null;
+                        }
+                    });
+                    
+                    // Cleanup on disconnect
+                    onDisconnect(ref(db, `queue/${myQueueKey}`)).remove();
+                }
+            });
+        };
 
-            // Hide loader, show video UI
+        function startVideo(roomID) {
             document.getElementById('matching-loader').style.display = 'none';
+            // Get Partner Name
+            get(ref(db, `users/${currentPartnerID}`)).then(s => {
+                const name = s.exists() ? s.val().displayName : "Stranger";
+                document.getElementById('v-status').innerText = "Connected: " + name;
+            });
 
-            // Initialize Zego
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName);
             zp = ZegoUIKitPrebuilt.create(kitToken);
-
             zp.joinRoom({
-                container: document.getElementById('remote-video-container'),
-                scenario: {
-                    mode: ZegoUIKitPrebuilt.OneONoneCall,
-                },
+                container: document.getElementById('remote-video'),
+                scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
                 showPreJoinView: false,
-                showMyCameraToggleButton: false,
-                showMyMicrophoneToggleButton: false,
-                showAudioVideoSettingsButton: false,
-                showLeavingView: false, // Don't show Zego's end screen
-                // Display local video in the small container (PiP)
-                onJoinRoom: () => {
-                     // Zego UI Kit handles placing the local video, 
-                     // but we need to hack it slightly to put it in our custom PiP container if needed.
-                     // For simplicity in this kit, we let Zego handle the layout which defaults to PiP in OneOnOne mode.
-                     // We just ensure our custom UI sits on top.
-                },
-                onLeaveRoom: () => {
-                    // Handle if the other person leaves
-                    exitVideoScreen();
-                }
+                showLeavingView: false,
+                onLeaveRoom: () => window.endCall()
             });
         }
 
         window.endCall = () => {
-            if (zp) zp.destroy();
-            if (myQueueRef) remove(myQueueRef); // Stop searching if hanging up during search
-            exitVideoScreen();
+            if(zp) zp.destroy();
+            if(myQueueKey) remove(ref(db, `queue/${myQueueKey}`));
+            document.getElementById('video-screen').style.display = 'none';
         };
 
-        function exitVideoScreen() {
-            document.getElementById('video-screen').style.display = 'none';
-            document.getElementById('matching-loader').style.display = 'flex'; // Reset loader for next time
-            // Return to home screen
-            switchTab('home', document.querySelector('.nav-item.active'));
-        }
+        // --- FRIEND & CHAT ---
+        window.addFriend = () => {
+            if(currentPartnerID) {
+                // Add to my friends
+                update(ref(db, `users/${currentUser.uid}/friends/${currentPartnerID}`), { since: Date.now() });
+                // Add me to their friends
+                update(ref(db, `users/${currentPartnerID}/friends/${currentUser.uid}`), { since: Date.now() });
+                alert("Friend Added!");
+            }
+        };
 
-        // --- IN-CALL ACTIONS ---
-        window.addCurrentPartnerAsFriend = () => {
-            if(!currentPartnerUid) return;
-            // Add partner to my friends list in DB
-            update(ref(db, `users/${currentUser.uid}/friends`), {
-                [currentPartnerUid]: true
-            });
-            alert("Friend added successfully! Check your contacts list.");
-        }
+        function loadFriends() {
+            onValue(ref(db, `users/${currentUser.uid}/friends`), async (snap) => {
+                const list = document.getElementById('friend-list-ui');
+                list.innerHTML = "";
+                
+                if(snap.exists()) {
+                    const ids = Object.keys(snap.val());
+                    for(const uid of ids) {
+                        // Fetch details
+                        const uSnap = await get(ref(db, `users/${uid}`));
+                        if(uSnap.exists()) { // Check if user exists in DB
+                            const u = uSnap.val();
+                            // If user details are missing (e.g. newly created via queue), use defaults or fetch from auth data if stored
+                            // Note: For this to work perfectly, you need to save user data on login (added below)
+                             
+                             const name = u.displayName || "Unknown User";
+                             const pic = u.photoURL || "https://via.placeholder.com/50";
 
-
-        // --- LOAD CONTACTS (Img 19 Logic) ---
-        function loadContacts() {
-            const friendsRef = ref(db, `users/${currentUser.uid}/friends`);
-            onValue(friendsRef, async (snapshot) => {
-                const listContainer = document.getElementById('contacts-list');
-                listContainer.innerHTML = ''; // Clear current list
-
-                if (snapshot.exists()) {
-                    const friendUids = Object.keys(snapshot.val());
-                    for (const friendUid of friendUids) {
-                        // Fetch friend's details
-                        const friendSnap = await get(ref(db, `users/${friendUid}`));
-                        if(friendSnap.exists()) {
-                            const friendData = friendSnap.val();
-                            const isOnline = friendData.status === 'online';
-                            const statusText = isOnline ? 'Online' : 'Offline';
-                            const statusClass = isOnline ? 'online-status' : '';
-
-                            const listItem = `
-                                <div class="list-item">
-                                    <img src="${friendData.photoURL}" class="list-avatar">
-                                    <div class="list-info">
-                                        <div class="list-name">${friendData.displayName}</div>
-                                        <div class="list-sub ${statusClass}">${statusText}</div>
-                                    </div>
-                                    <div class="call-actions">
-                                        <i class="fas fa-phone-alt"></i>
-                                        <i class="fas fa-video"></i>
-                                    </div>
+                            const div = document.createElement('div');
+                            div.className = 'list-item';
+                            div.innerHTML = `
+                                <img src="${pic}" class="u-avatar">
+                                <div class="u-info">
+                                    <div class="u-name">${name}</div>
+                                    <div class="u-status">Tap to chat</div>
                                 </div>
+                                <i class="fas fa-comment-dots" style="color:#666"></i>
                             `;
-                            listContainer.innerHTML += listItem;
+                            div.onclick = () => openChat(uid, name, pic);
+                            list.appendChild(div);
                         }
                     }
                 } else {
-                    listContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">No friends yet. Add people from video calls!</p>';
+                    list.innerHTML = `<p style="text-align:center; color:#666; margin-top:50px;">No friends yet.</p>`;
                 }
             });
         }
+        
+        // Save User Data on Login (Crucial for Chat)
+        onAuthStateChanged(auth, (user) => {
+            if(user) {
+                update(ref(db, `users/${user.uid}`), {
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL
+                });
+            }
+        });
+
+        // --- CHAT LOGIC ---
+        window.openChat = (uid, name, pic) => {
+            activeChatID = uid;
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('chat-head-name').innerText = name;
+            document.getElementById('chat-head-img').src = pic;
+            
+            // Load Messages
+            const room = [currentUser.uid, uid].sort().join('_');
+            onValue(ref(db, `chats/${room}`), (snap) => {
+                const box = document.getElementById('chat-msgs');
+                box.innerHTML = "";
+                if(snap.exists()) {
+                    snap.forEach(c => {
+                        const m = c.val();
+                        const isMe = m.sender === currentUser.uid;
+                        box.innerHTML += `<div class="msg ${isMe ? 'msg-me' : 'msg-other'}">${m.text}</div>`;
+                    });
+                    box.scrollTop = box.scrollHeight;
+                }
+            });
+        };
+
+        window.closeChat = () => {
+            document.getElementById('chat-screen').style.display = 'none';
+            activeChatID = null;
+        };
+
+        window.sendMsg = () => {
+            const txt = document.getElementById('msg-input').value.trim();
+            if(txt && activeChatID) {
+                const room = [currentUser.uid, activeChatID].sort().join('_');
+                push(ref(db, `chats/${room}`), {
+                    sender: currentUser.uid,
+                    text: txt,
+                    time: Date.now()
+                });
+                document.getElementById('msg-input').value = "";
+            }
+        };
 
     </script>
 </body>
