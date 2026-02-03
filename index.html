@@ -2,221 +2,234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExploreMeet: Riya Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ExploreMeet Dating</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    
-    <!-- External SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
     <style>
+        /* --- ROMANTIC THEME VARIABLES --- */
         :root {
-            --primary: #ff007f; /* Neon Pink */
-            --secondary: #7f00ff; /* Cyber Purple */
-            --dark: #0f0c29;
-            --glass: rgba(255, 255, 255, 0.1);
+            --primary: #ff4b6e; /* Hot Pink */
+            --secondary: #6c5ce7; /* Purple */
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
             --text: #ffffff;
+            --gray: #a0a0a0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background-color: var(--dark-bg); color: var(--text); overflow: hidden; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
+        /* --- 1. LANDING PAGE (Login) --- */
+        #landing-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(26, 26, 46, 0.8), rgba(255, 75, 110, 0.4)), url('https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1000');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2000; text-align: center;
+        }
+        .app-title { font-size: 3rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #ff4b6e, #ff9f43); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+        .google-login-btn {
+            background: white; color: #333; border: none; padding: 15px 35px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; margin-top: 30px;
+            box-shadow: 0 0 20px rgba(255, 75, 110, 0.5); transition: 0.3s;
         }
 
-        /* --- UI UTILITIES --- */
-        .hidden { display: none !important; }
+        /* --- 2. MAIN APP UI --- */
+        #app-interface { display: none; height: 100%; flex-direction: column; }
         
-        .btn {
+        /* Header */
+        .header {
+            height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            background: rgba(22, 33, 62, 0.9); border-bottom: 1px solid #333;
+        }
+        .header-logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .coins-badge { background: #333; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+
+        /* Content Area */
+        .screen-container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 140px; /* Space for Ad + Nav */ }
+        .screen { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.4s ease; }
+        .active-screen { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Home/Match Screen */
+        .radar-container {
+            width: 200px; height: 200px; border-radius: 50%; background: rgba(255, 75, 110, 0.1);
+            display: flex; align-items: center; justify-content: center; margin: 40px 0;
+            position: relative; box-shadow: 0 0 30px rgba(255, 75, 110, 0.2);
+        }
+        .radar-pulse {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--primary);
+            animation: pulse 2s infinite; opacity: 0;
+        }
+        @keyframes pulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        
+        .match-btn {
             background: linear-gradient(45deg, var(--primary), var(--secondary));
-            border: none;
-            padding: 12px 24px;
-            color: white;
-            border-radius: 50px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--primary);
-            transition: transform 0.2s;
+            color: white; border: none; padding: 18px 50px; border-radius: 50px; font-size: 1.3rem; font-weight: bold;
+            box-shadow: 0 10px 20px rgba(255, 75, 110, 0.4); cursor: pointer; transition: 0.2s;
         }
-        .btn:active { transform: scale(0.95); }
+        .match-btn:active { transform: scale(0.95); }
 
-        /* --- SCREENS --- */
-        #login-screen, #home-screen, #video-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
+        /* Messages/Friends Screen */
+        .friend-item {
+            width: 100%; background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
         }
+        .friend-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+        .friend-info h4 { margin: 0; color: white; }
+        .friend-info p { margin: 0; font-size: 0.8rem; color: var(--gray); }
+        .status-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; margin-left: auto; }
 
-        /* Login Screen */
-        #login-screen {
-            background: url('https://media.giphy.com/media/uIiI5g2Q6W2W9KEXQv/giphy.gif') center/cover no-repeat;
-            z-index: 20;
+        /* --- BOTTOM NAV & ADS --- */
+        .ad-container {
+            position: fixed; bottom: 65px; width: 100%; height: 50px; background: #000;
+            display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.8rem; z-index: 99;
         }
-        .glass-panel {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-            text-align: center;
-            max-width: 90%;
-            width: 400px;
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 65px; background: var(--card-bg);
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+            border-top: 1px solid #333;
         }
-        h1 { font-family: 'Orbitron', sans-serif; margin-bottom: 20px; text-shadow: 0 0 10px var(--primary); }
+        .nav-item { font-size: 1.5rem; color: #555; padding: 10px; transition: 0.2s; }
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px rgba(255, 75, 110, 0.6); transform: translateY(-5px); }
 
-        /* Home Screen */
-        #home-screen {
-            justify-content: flex-start;
-            padding-top: 60px;
-            overflow-y: auto;
-        }
-        .profile-card {
-            background: rgba(0,0,0,0.6);
-            padding: 20px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            margin-bottom: 20px;
-            border: 1px solid var(--primary);
-        }
-        .profile-card img {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            margin-bottom: 10px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 15px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid var(--secondary);
-            color: white;
-            border-radius: 5px;
-        }
-
-        /* Video Container */
-        #video-container {
-            background: #000;
-            z-index: 100; /* High Z-index but below Riya */
-        }
-        #zego-canvas {
-            width: 100%; height: 100%;
-        }
-
-        /* --- RIYA (THE CHARACTER) --- */
-        #riya-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 140px;
-            height: 180px;
-            z-index: 9999; /* Highest Priority */
-            cursor: pointer;
-            filter: drop-shadow(0 0 10px rgba(255,0,127,0.5));
-            transition: transform 0.2s;
-        }
-        #riya-container:active { transform: scale(0.9); }
+        /* --- VIDEO CALL OVERLAYS (Important) --- */
+        #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         
-        #riya-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        /* Post-Call Action Screen (Instead of going Home) */
+        #next-match-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 5001; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
         }
+        .next-btn {
+            background: white; color: black; padding: 15px 40px; border-radius: 30px; font-weight: bold; font-size: 1.2rem;
+            margin-top: 20px; cursor: pointer; border: none;
+        }
+        
+        /* In-Call Controls */
+        #in-call-controls {
+            position: absolute; bottom: 100px; right: 20px; z-index: 5002; display: none; flex-direction: column; gap: 15px;
+        }
+        .control-btn {
+            width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .btn-friend { background: white; color: var(--primary); }
+        .btn-next { background: var(--primary); color: white; }
 
-        /* Speech Bubble */
-        .bubble {
-            position: absolute;
-            bottom: 160px;
-            right: 10px;
-            background: white;
-            color: black;
-            padding: 10px 15px;
-            border-radius: 15px 15px 0 15px;
-            font-size: 12px;
-            font-weight: bold;
-            width: 200px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 10000;
+        /* Gender Selection */
+        #gender-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center;
         }
-        .bubble.show { opacity: 1; }
+        .gender-row { display: flex; gap: 20px; margin-top: 30px; }
+        .g-card {
+            width: 120px; padding: 20px; background: var(--card-bg); border-radius: 15px; text-align: center;
+            border: 2px solid transparent; cursor: pointer; transition: 0.2s;
+        }
+        .g-card:hover { border-color: var(--primary); }
+        .g-card i { font-size: 2.5rem; margin-bottom: 10px; color: var(--primary); }
 
     </style>
 </head>
 <body>
 
-    <!-- RIYA OVERLAY -->
-    <div id="bubble" class="bubble"></div>
-    <div id="riya-container" onclick="riya.handleTap()">
-        <!-- Default Neutral State -->
-        <img id="riya-img" src="https://media.tenor.com/On7kvX_rWQwAAAAi/girl-phone.gif" alt="Riya">
+    <div id="landing-screen">
+        <div class="app-title">ExploreMeet</div>
+        <p style="color: #ddd;">Date. Chat. Connect.</p>
+        <button id="login-btn" class="google-login-btn">
+            <i class="fab fa-google"></i> Login with Google
+        </button>
     </div>
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen">
-        <div class="glass-panel">
-            <h1>ExploreMeet</h1>
-            <p>Connect with Vibes.</p>
-            <br>
-            <button class="btn" onclick="loginWithGoogle()">Login with Google</button>
+    <div id="app-interface">
+        <div class="header">
+            <div class="header-logo">ExploreMeet</div>
+            <div class="coins-badge"><i class="fas fa-gem" style="color: gold;"></i> VIP</div>
+        </div>
+
+        <div class="screen-container">
+            
+            <div id="screen-home" class="screen active-screen">
+                <div class="radar-container">
+                    <div class="radar-pulse"></div>
+                    <img id="my-avatar" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid white;">
+                </div>
+                <h2 style="margin-bottom: 5px;">Find Someone</h2>
+                <p style="color: var(--gray); margin-bottom: 40px;">Random video chat with strangers</p>
+                
+                <button id="start-match-btn" class="match-btn">
+                    <i class="fas fa-video"></i> Start Matching
+                </button>
+            </div>
+
+            <div id="screen-messages" class="screen">
+                <h3 style="align-self: flex-start; margin-bottom: 20px;">My Friends</h3>
+                <div id="friends-list" style="width: 100%;">
+                    <div style="text-align: center; color: var(--gray); margin-top: 50px;">
+                        No friends yet. Add people during calls!
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen-profile" class="screen">
+                <div style="background: var(--card-bg); padding: 30px; border-radius: 20px; text-align: center; width: 100%; margin-top: 20px;">
+                    <img id="profile-img-big" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--primary);">
+                    <h2 id="profile-name">User</h2>
+                    <button class="match-btn" style="padding: 10px 30px; font-size: 1rem; margin-top: 20px; background: gold; color: black;">
+                        <i class="fas fa-crown"></i> Buy Subscription
+                    </button>
+                    <br><br>
+                    <button id="logout-btn" style="background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 20px;">Logout</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="ad-container" id="ad-banner">
+            <span>Ad Space (Auto-filled in App)</span>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')"><i class="fas fa-fire"></i></div>
+            <div class="nav-item" onclick="switchTab('messages')"><i class="fas fa-comments"></i></div>
+            <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
-    <!-- HOME SCREEN -->
-    <div id="home-screen" class="hidden">
-        <div class="profile-card">
-            <center>
-                <img id="user-photo" src="" alt="Profile">
-                <h2 id="user-name">User</h2>
-            </center>
-            <label>Date of Birth</label>
-            <input type="date" id="user-dob">
-            <label>Bio (Impress Riya)</label>
-            <textarea id="user-bio" rows="2" placeholder="Kuch cool likh..."></textarea>
-            <button class="btn" style="width:100%" onclick="saveProfile()">Update Profile</button>
+    <div id="gender-modal">
+        <h2 style="color: white;">Looking for?</h2>
+        <div class="gender-row">
+            <div class="g-card" onclick="startSearch('male')"><i class="fas fa-mars"></i><br>Guys</div>
+            <div class="g-card" onclick="startSearch('female')"><i class="fas fa-venus"></i><br>Girls</div>
+        </div>
+        <button onclick="document.getElementById('gender-modal').style.display='none'" style="margin-top: 30px; background: transparent; border: none; color: #aaa; text-decoration: underline;">Cancel</button>
+    </div>
+
+    <div id="video-layer">
+        <div id="video-embed" style="width: 100%; height: 100%;"></div>
+        
+        <div id="in-call-controls">
+            <button class="control-btn btn-friend" onclick="sendFriendRequest()"><i class="fas fa-heart"></i></button>
+            <button class="control-btn btn-next" onclick="skipUser()"><i class="fas fa-forward"></i></button>
         </div>
 
-        <div class="profile-card" style="text-align: center;">
-            <h3>Start Matching</h3>
-            <p>Find new friends now!</p>
-            <br>
-            <button class="btn" onclick="startVideoCall()">Start Video Call</button>
-        </div>
-
-        <div class="profile-card" style="text-align: center; border-color: gold;">
-            <h3 style="color: gold;">VIP Access</h3>
-            <p>Make Riya Happy & Remove Ads</p>
-            <br>
-            <button class="btn" style="background: gold; color: black;" onclick="buyVIP()">Buy VIP (₹499)</button>
+        <div id="next-match-overlay">
+            <h2 style="color: white;">Call Ended</h2>
+            <button class="next-btn" onclick="retryMatch()">Find New Partner</button>
+            <button style="margin-top: 20px; background: transparent; color: white; border: none;" onclick="exitVideoMode()">Go Home</button>
         </div>
     </div>
 
-    <!-- VIDEO CALL CONTAINER -->
-    <div id="video-container" class="hidden">
-        <div id="zego-canvas"></div>
-    </div>
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, onValue, remove, push, get, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <script>
-        // ==========================================
-        // 1. CONFIGURATION
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
             authDomain: "exploremeet---live.firebaseapp.com",
@@ -227,245 +240,178 @@
             appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
 
-        const zegoConfig = {
-            appID: 2013687880,
-            serverSecret: "2576346c100ee42b720e88db26d01e53"
-        };
-
-        const razorpayKey = "rzp_live_SBirtJRkaeGMgl";
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
         let currentUser = null;
+        let currentRoomID = null;
+        let currentPartnerUID = null;
+        let zegoInstance = null;
 
-        // ==========================================
-        // 2. RIYA: THE AI CHARACTER LOGIC
-        // ==========================================
-        const riya = {
-            mood: 50, // 0-100
-            tapCount: 0,
-            isAngry: false,
-            voice: null,
-            
-            // GIF ASSETS (Reliable URLs)
-            gifs: {
-                neutral: "https://media.tenor.com/On7kvX_rWQwAAAAi/girl-phone.gif", // Girl looking at phone
-                angry: "https://media.tenor.com/1sC7lK0xQ6EAAAAi/angry-mad.gif",   // Indian girl angry/scolding
-                happy: "https://media.tenor.com/k2wBdb9D9wwAAAAi/priyanka-chopra-laughing.gif" // Laughing
-            },
+        // --- AUTH ---
+        document.getElementById('login-btn').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
-            init: function() {
-                // Initialize Voice on user interaction
-                window.speechSynthesis.onvoiceschanged = () => {
-                    const voices = window.speechSynthesis.getVoices();
-                    // Try to find an Indian English or Hindi voice
-                    this.voice = voices.find(v => v.lang.includes('IN')) || voices[0];
-                };
-            },
-
-            setEmotion: function(type) {
-                const img = document.getElementById('riya-img');
-                if (type === 'neutral') img.src = this.gifs.neutral;
-                if (type === 'angry') img.src = this.gifs.angry;
-                if (type === 'happy') img.src = this.gifs.happy;
-            },
-
-            speak: function(text) {
-                // Visual Bubble
-                const bubble = document.getElementById('bubble');
-                bubble.innerText = text;
-                bubble.classList.add('show');
-                setTimeout(() => bubble.classList.remove('show'), 4000);
-
-                // Audio
-                const utterance = new SpeechSynthesisUtterance(text);
-                if (this.voice) utterance.voice = this.voice;
-                utterance.pitch = 1.1; // Slightly higher pitch for female voice
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
-            },
-
-            handleTap: function() {
-                this.tapCount++;
-                
-                // VIP Logic Override
-                if (this.mood === 100) {
-                    this.speak("Arey bas kar hero, main pat gayi hoon!");
-                    return;
-                }
-
-                if (this.tapCount <= 3) {
-                    this.setEmotion('neutral');
-                    this.speak("Kya hai? Why are you disturbing me?");
-                } else if (this.tapCount <= 6) {
-                    this.mood -= 5;
-                    this.setEmotion('angry');
-                    this.speak("Touch mat kar! Mummy ko bol dungi main!");
-                } else {
-                    this.isAngry = true;
-                    this.mood -= 10;
-                    this.setEmotion('angry');
-                    this.speak("Bhaav kha rahi hoon main, side hat tu!");
-                    // Reset tap count slowly
-                    setTimeout(() => { this.tapCount = 0; this.setEmotion('neutral'); }, 5000);
-                }
-            },
-
-            reactToLogin: function() {
-                this.setEmotion('neutral');
-                this.speak("Aur janab? Bade dino baad yaad aayi meri?");
-            },
-
-            reactToCallStart: function() {
-                this.setEmotion('neutral');
-                this.speak("Dekh le, koi dhang ki mile toh batana mujhe bhi.");
-            },
-
-            reactToCallEnd: function() {
-                this.setEmotion('neutral');
-                this.speak("Kaisi thi wo? Maza aaya ya paise barbaad?");
-            },
-
-            reactToVIP: function() {
-                this.mood = 100;
-                this.setEmotion('happy');
-                this.speak("Oye hoye! Ameer ho gaye tum toh! Chal momos khilati hoon.");
-            }
-        };
-
-        riya.init();
-
-        // ==========================================
-        // 3. AUTHENTICATION & UI FLOW
-        // ==========================================
-        const ui = {
-            login: document.getElementById('login-screen'),
-            home: document.getElementById('home-screen'),
-            video: document.getElementById('video-container'),
-            
-            showHome: function() {
-                this.login.classList.add('hidden');
-                this.video.classList.add('hidden');
-                this.home.classList.remove('hidden');
-            },
-            showVideo: function() {
-                this.home.classList.add('hidden');
-                this.video.classList.remove('hidden');
-            }
-        };
-
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => alert(error.message));
-        }
-
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('user-photo').src = user.photoURL;
-                document.getElementById('user-name').innerText = user.displayName;
-                ui.showHome();
-                
-                // Trigger Riya only once per session ideally, but here on auth state change
-                // We use a small timeout to ensure DOM is ready
-                setTimeout(() => riya.reactToLogin(), 1000);
+                document.getElementById('landing-screen').style.display = 'none';
+                document.getElementById('app-interface').style.display = 'flex';
+                document.getElementById('my-avatar').src = user.photoURL;
+                document.getElementById('profile-img-big').src = user.photoURL;
+                document.getElementById('profile-name').innerText = user.displayName;
+                loadFriends();
             } else {
-                ui.login.classList.remove('hidden');
-                ui.home.classList.add('hidden');
+                document.getElementById('landing-screen').style.display = 'flex';
+                document.getElementById('app-interface').style.display = 'none';
             }
         });
 
-        function saveProfile() {
-            const dob = document.getElementById('user-dob').value;
-            const bio = document.getElementById('user-bio').value;
-            
-            db.ref('users/' + currentUser.uid).set({
-                name: currentUser.displayName,
-                email: currentUser.email,
-                dob: dob,
-                bio: bio,
-                lastSeen: Date.now()
-            });
+        // --- NAVIGATION ---
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('screen-' + tab).classList.add('active-screen');
+            const index = tab === 'home' ? 0 : tab === 'messages' ? 1 : 2;
+            document.querySelectorAll('.nav-item')[index].classList.add('active');
+        };
 
-            riya.setEmotion('happy');
-            riya.speak("Profile update kar li? Hero lag raha hai ab.");
+        // --- MATCHING LOGIC ---
+        document.getElementById('start-match-btn').addEventListener('click', () => {
+            document.getElementById('gender-modal').style.display = 'flex';
+        });
+
+        window.startSearch = (genderPref) => {
+            document.getElementById('gender-modal').style.display = 'none';
+            document.getElementById('video-layer').style.display = 'block';
+            document.getElementById('next-match-overlay').style.display = 'none'; // Hide overlay
+            document.getElementById('video-embed').innerHTML = '<h3 style="color:white; text-align:center; margin-top:50%;">Searching...</h3>';
+            
+            findMatch(genderPref);
+        };
+
+        async function findMatch(pref) {
+            const queueRef = ref(db, 'queue');
+            // Check if someone is waiting
+            const snapshot = await get(queueRef);
+            let matchFound = false;
+
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    // Logic: Not me, and not already matched
+                    if (!matchFound && child.val().uid !== currentUser.uid && !child.val().matchedWith) {
+                        matchFound = true;
+                        currentPartnerUID = child.val().uid; // Save partner ID for friend request
+                        const roomID = child.key;
+                        
+                        // Update DB to say we matched
+                        set(ref(db, `queue/${child.key}/matchedWith`), currentUser.uid);
+                        set(ref(db, `queue/${child.key}/partnerName`), currentUser.displayName);
+                        
+                        startZegoCall(roomID);
+                    }
+                });
+            }
+
+            if (!matchFound) {
+                // Creates a new room and waits
+                const myRef = push(queueRef);
+                set(myRef, { uid: currentUser.uid, name: currentUser.displayName, matchedWith: "" });
+                
+                // Listen for someone to join me
+                onValue(myRef, (snap) => {
+                    const data = snap.val();
+                    if (data && data.matchedWith) {
+                        currentPartnerUID = data.matchedWith; // Partner joined
+                        startZegoCall(myRef.key);
+                        // Clean up queue entry after 5 seconds
+                        setTimeout(() => remove(myRef), 5000); 
+                    }
+                });
+                
+                // If I disconnect while waiting, remove me from queue
+                onDisconnect(myRef).remove();
+            }
         }
 
-        // ==========================================
-        // 4. VIDEO CALL (ZEGOCLOUD)
-        // ==========================================
-        function startVideoCall() {
-            riya.reactToCallStart();
-            ui.showVideo();
-
-            const roomID = "ExploreMeet_" + Math.floor(Math.random() * 10000);
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-                zegoConfig.appID, 
-                zegoConfig.serverSecret, 
-                roomID, 
-                currentUser.uid, 
-                currentUser.displayName
-            );
-
-            const zp = ZegoUIKitPrebuilt.create(kitToken);
+        // --- VIDEO CALL ---
+        function startZegoCall(roomID) {
+            currentRoomID = roomID;
+            const appID = 2013687880; 
+            const serverSecret = "2576346c100ee42b720e88db26d01e53";
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName);
             
-            zp.joinRoom({
-                container: document.getElementById("zego-canvas"),
-                scenario: {
-                    mode: ZegoUIKitPrebuilt.OneONOneCall, 
-                },
+            zegoInstance = ZegoUIKitPrebuilt.create(kitToken);
+            
+            zegoInstance.joinRoom({
+                container: document.getElementById('video-embed'),
+                scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
                 showPreJoinView: false,
                 turnOnCameraWhenJoining: true,
-                turnOnMicrophoneWhenJoining: true,
-                showMyCameraToggleButton: true,
-                showMyMicrophoneToggleButton: true,
-                showAudioVideoSettingsButton: true,
-                showScreenSharingButton: false,
-                // Custom Leave Logic to prevent reload
+                showLeavingView: false, // Don't show default leave view
                 onLeaveRoom: () => {
-                    ui.showHome();
-                    // Destroy instance logic handled by UI switch mostly
-                    document.getElementById("zego-canvas").innerHTML = ""; // clear canvas
-                    setTimeout(() => riya.reactToCallEnd(), 500);
+                    // CUSTOM LEAVE LOGIC: Don't go home, show "Next" overlay
+                    document.getElementById('in-call-controls').style.display = 'none';
+                    document.getElementById('next-match-overlay').style.display = 'flex';
+                },
+                onJoinRoom: () => {
+                    document.getElementById('in-call-controls').style.display = 'flex';
                 }
             });
         }
 
-        // ==========================================
-        // 5. PAYMENT (RAZORPAY)
-        // ==========================================
-        function buyVIP() {
-            const options = {
-                "key": razorpayKey,
-                "amount": "49900", // in paise
-                "currency": "INR",
-                "name": "ExploreMeet VIP",
-                "description": "Make Riya Happy",
-                "image": "https://cdn-icons-png.flaticon.com/512/2534/2534204.png",
-                "handler": function (response){
-                    // Payment Success
-                    // Verify payment on server in production
-                    db.ref('users/' + currentUser.uid + '/vip').set(true);
-                    riya.reactToVIP();
-                },
-                "prefill": {
-                    "name": currentUser.displayName,
-                    "email": currentUser.email
-                },
-                "theme": {
-                    "color": "#ff007f"
+        // --- IN CALL ACTIONS ---
+        window.sendFriendRequest = () => {
+            if(currentPartnerUID) {
+                // Add to my friends list (Simple implementation)
+                const updates = {};
+                updates[`users/${currentUser.uid}/friends/${currentPartnerUID}`] = true;
+                // Ideally, you would send a request first, but for now we direct add for simplicity
+                update(ref(db), updates);
+                alert("Friend added! Check Message Tab.");
+            }
+        };
+
+        window.skipUser = () => {
+            if(zegoInstance) zegoInstance.destroy();
+            window.startSearch('any'); // Immediately find next
+        };
+
+        window.retryMatch = () => {
+            if(zegoInstance) zegoInstance.destroy();
+            window.startSearch('any');
+        };
+
+        window.exitVideoMode = () => {
+            if(zegoInstance) zegoInstance.destroy();
+            document.getElementById('video-layer').style.display = 'none';
+            location.reload(); // Refresh to clean state completely
+        };
+
+        // --- FRIENDS LIST ---
+        function loadFriends() {
+            const friendsRef = ref(db, `users/${currentUser.uid}/friends`);
+            onValue(friendsRef, (snapshot) => {
+                const list = document.getElementById('friends-list');
+                list.innerHTML = ""; // Clear
+                if(snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        // In a real app, fetch user details. Here we show dummy for demo
+                        list.innerHTML += `
+                        <div class="friend-item">
+                            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="friend-avatar">
+                            <div class="friend-info">
+                                <h4>New Friend</h4>
+                                <p>Tap to chat</p>
+                            </div>
+                            <div class="status-dot"></div>
+                        </div>`;
+                    });
+                } else {
+                    list.innerHTML = '<div style="text-align: center; color: var(--gray); margin-top: 50px;">No friends yet.</div>';
                 }
-            };
-            const rzp1 = new Razorpay(options);
-            rzp1.open();
-            rzp1.on('payment.failed', function (response){
-                riya.setEmotion('angry');
-                riya.speak("Card decline ho gaya? Gareeb!");
             });
         }
-
     </script>
 </body>
 </html>
