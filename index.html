@@ -3,175 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EMLive - Perfect App</title>
+    <title>ExploreMeet Chat</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
-        /* --- THEME SETTINGS --- */
+        /* --- THEME --- */
         :root {
             --bg-dark: #0a0a12;
-            --primary-pink: #ff0055;
-            --text-white: #ffffff;
             --card-bg: #151520;
+            --primary-pink: #ff0055;
+            --vip-gold: #ffd700;
+            --text-white: #ffffff;
+            --text-muted: #888899;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; background-color: var(--bg-dark); color: var(--text-white); overflow: hidden; }
 
-        /* --- UTILITY CLASSES --- */
+        /* --- UTILS --- */
         .hidden { display: none !important; }
-        .glass-btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; cursor: pointer; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; }
+        .glass-input { width: 100%; padding: 12px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; margin-bottom: 10px; }
+        img { object-fit: cover; } /* Ensures photos don't stretch */
 
-        /* --- 1. LOGIN SCREEN --- */
+        /* --- LOGIN --- */
         #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; font-weight: bold; border: none; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; font-weight: bold; border: none; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* --- 2. MAIN APP --- */
-        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 80px; }
+        /* --- MAIN LAYOUT --- */
+        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 70px; }
         
-        /* HEADER */
-        .header { padding: 20px; font-size: 1.5rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-        .brand { color: var(--primary-pink); }
+        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(20,20,30,0.95); border-bottom: 1px solid #333; }
+        .brand { font-size: 1.2rem; font-weight: 800; }
+        .brand span { color: var(--primary-pink); }
+        .vip-badge { background: var(--vip-gold); color: black; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; display: none; }
 
-        /* SCREENS */
-        .screen-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; }
+        /* --- HOME (MATCHING) --- */
+        .home-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .radar-box { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
         
-        /* HOME - RADAR */
-        .home-center { align-items: center; justify-content: center; text-align: center; }
-        .radar-box { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
-        .my-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid white; object-fit: cover; z-index: 2; position: relative; }
-        .pulse { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; animation: pulse 2.5s infinite; opacity: 0; }
-        .pulse:nth-child(2) { animation-delay: 0.8s; }
+        .my-avatar { 
+            width: 100px; height: 100px; border-radius: 50%; border: 3px solid white; 
+            z-index: 2; position: relative; box-shadow: 0 0 15px var(--primary-pink);
+            background-color: #333; 
+        }
+        
+        .radar-ring { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; animation: pulse 2s infinite; opacity: 0; }
+        .radar-ring:nth-child(2) { animation-delay: 0.6s; }
         @keyframes pulse { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        .start-btn { 
-            background: linear-gradient(90deg, var(--primary-pink), #ff4444); color: white; border: none;
-            padding: 18px 80px; border-radius: 50px; font-size: 1.4rem; font-weight: bold;
-            box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4); cursor: pointer;
-        }
+        .start-btn { background: linear-gradient(90deg, var(--primary-pink), #ff4444); color: white; border: none; padding: 18px 70px; border-radius: 50px; font-size: 1.3rem; font-weight: bold; box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4); cursor: pointer; }
 
-        /* LISTS (Friends/Messages) */
-        .list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        /* --- MESSAGES LIST --- */
+        .list-screen { flex: 1; padding: 20px; overflow-y: auto; }
+        .list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
         .list-item:active { background: rgba(255,255,255,0.05); }
-        .u-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #333; }
+        .u-avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; background: #333; }
         .u-info { flex: 1; }
         .u-name { font-weight: 600; font-size: 1.1rem; }
-        .u-status { font-size: 0.8rem; color: #888; }
-        .online { color: #2ecc71; }
+        .u-msg { font-size: 0.85rem; color: #888; }
 
-        /* PROFILE */
-        .profile-card { background: var(--card-bg); padding: 30px; border-radius: 20px; text-align: center; margin-top: 20px; }
-        .logout-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 10px 30px; margin-top: 20px; border-radius: 20px; cursor: pointer; }
+        /* --- PROFILE --- */
+        .profile-card { background: var(--card-bg); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #333; margin-top: 20px; }
+        
+        /* Profile Image Container with Edit Icon */
+        .profile-img-container { position: relative; width: 110px; height: 110px; margin: 0 auto 15px auto; cursor: pointer; }
+        .profile-pic-lg { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--primary-pink); background-color: #333; }
+        .edit-icon { position: absolute; bottom: 5px; right: 5px; background: white; color: black; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 2px solid var(--primary-pink); }
 
-        /* NAVIGATION */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--bg-dark); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-icon { font-size: 1.5rem; color: #666; padding: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-icon.active { color: var(--primary-pink); transform: translateY(-5px); }
+        .label { font-size: 0.8rem; color: #888; margin-top: 10px; display: block; }
+        
+        .vip-buy-btn { width: 100%; background: var(--vip-gold); color: black; padding: 12px; border-radius: 10px; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logout-btn { width: 100%; background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 12px; border-radius: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
 
-        /* --- 3. VIDEO CALL OVERLAY --- */
-        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
+        /* --- ADS --- */
+        #ad-banner { width: 100%; height: 60px; background: #222; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 70px; border-top: 1px solid #333; z-index: 90; }
+        .ad-text { color: #555; font-size: 0.8rem; }
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: var(--bg-dark); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .nav-icon { font-size: 1.4rem; color: #666; padding: 10px; cursor: pointer; }
+        .nav-icon.active { color: var(--primary-pink); }
+
+        /* --- VIDEO & LOADER --- */
+        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
         #remote-video { width: 100%; height: 100%; }
-        .video-overlay-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 5001; }
         
-        .v-header { margin-top: 40px; text-align: center; font-weight: 600; text-shadow: 0 2px 4px black; }
-        .v-controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-evenly; pointer-events: auto; }
-        .ctrl-btn { width: 60px; height: 60px; font-size: 1.2rem; }
-        .btn-end { background: var(--primary-pink); width: 75px; height: 75px; font-size: 2rem; }
+        .video-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 2001; }
+        .v-header { margin-top: 40px; text-align: center; text-shadow: 0 2px 5px black; font-weight: 600; }
         
-        .add-friend-btn { position: absolute; top: 50px; right: 20px; width: 50px; height: 50px; pointer-events: auto; background: rgba(0,0,0,0.5); }
+        .add-friend-btn { position: absolute; top: 50px; right: 20px; width: 50px; height: 50px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
 
-        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.95); z-index: 5002; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .v-controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-evenly; pointer-events: auto; }
+        .ctrl-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; border: none; color: white; font-size: 1.2rem; backdrop-filter: blur(5px); cursor: pointer; }
+        .btn-next { background: var(--primary-pink); width: 150px; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-        /* --- 4. CHAT OVERLAY --- */
-        #chat-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 6000; display: none; flex-direction: column; }
-        .chat-head { padding: 15px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; }
-        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .chat-input-area { padding: 10px; background: var(--card-bg); display: flex; gap: 10px; }
+        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.98); z-index: 2002; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .loader-ring { width: 60px; height: 60px; border: 4px solid var(--primary-pink); border-top-color: transparent; border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- CHAT OVERLAY --- */
+        #chat-interface { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 3000; display: none; flex-direction: column; }
+        .chat-head { padding: 15px; background: var(--card-bg); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .chat-foot { padding: 10px; background: var(--card-bg); display: flex; gap: 10px; }
         
-        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; word-wrap: break-word; font-size: 0.95rem; }
+        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 0.9rem; word-wrap: break-word; }
         .msg-me { background: var(--primary-pink); align-self: flex-end; border-bottom-right-radius: 5px; }
         .msg-other { background: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
-        
-        .c-input { flex: 1; background: #0a0a12; border: none; padding: 12px 20px; border-radius: 25px; color: white; outline: none; }
+
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="margin-bottom: 40px; font-size: 2.5rem;">EM<span class="brand">Live</span></h1>
+        <h1 class="brand" style="font-size: 2.2rem; margin-bottom: 50px;">ExploreMeet <span>Chat</span></h1>
         <button class="login-btn" onclick="login()"><i class="fab fa-google"></i> Login with Google</button>
     </div>
 
     <div id="app-container" class="hidden">
         
         <div class="header">
-            <span>EM<span class="brand">Live</span></span>
+            <div class="brand">ExploreMeet <span>Chat</span></div>
+            <div id="vip-tag" class="vip-badge"><i class="fas fa-crown"></i> VIP</div>
         </div>
 
-        <div id="screen-home" class="screen-content home-center">
+        <div id="tab-home" class="screen-content home-content">
             <div class="radar-box">
-                <div class="pulse"></div><div class="pulse"></div>
-                <img id="home-dp" src="" class="my-avatar">
+                <div class="radar-ring"></div><div class="radar-ring"></div>
+                <img id="home-dp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="my-avatar" referrerpolicy="no-referrer">
             </div>
             <h2 style="margin-bottom: 10px;">Find Match</h2>
-            <p style="color: #888; margin-bottom: 50px;">Connect with random people</p>
-            <button class="start-btn" onclick="startMatching()">START</button>
+            <p style="color: #888; margin-bottom: 40px;">Tap Start to Connect</p>
+            <button class="start-btn" onclick="startMatchingCycle()">START</button>
         </div>
 
-        <div id="screen-friends" class="screen-content hidden">
-            <h2 style="margin-bottom: 20px;">Friends & Chats</h2>
-            <div id="friend-list-ui">
-                <p style="text-align:center; color:#666; margin-top:50px;">Add friends in video call to chat!</p>
+        <div id="tab-messages" class="screen-content list-screen hidden">
+            <h2 style="margin-bottom: 20px;">Messages</h2>
+            <div id="messages-list">
+                <p style="text-align: center; color: #666; margin-top: 50px;">Add friends in video call to chat!</p>
             </div>
         </div>
 
-        <div id="screen-profile" class="screen-content hidden">
-            <h2 style="margin-bottom: 20px;">My Profile</h2>
+        <div id="tab-profile" class="screen-content list-screen hidden">
+            <h2 style="margin-bottom: 10px;">My Profile</h2>
             <div class="profile-card">
-                <img id="profile-dp" src="" class="my-avatar">
-                <h2 id="profile-name" style="margin-top: 15px;">User</h2>
-                <p id="profile-email" style="color: #888;">email@gmail.com</p>
-                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+                
+                <div class="profile-img-container" onclick="triggerUpload()">
+                    <img id="profile-dp" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-pic-lg" referrerpolicy="no-referrer">
+                    <div class="edit-icon"><i class="fas fa-camera"></i></div>
+                </div>
+                <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="uploadPhoto(this)">
+
+                <span class="label">Full Name</span>
+                <h3 id="profile-name">User</h3>
+                
+                <span class="label">Date of Birth</span>
+                <input type="date" id="dob-input" class="glass-input" onchange="saveDOB()">
+                
+                <span class="label">Subscription</span>
+                <div id="plan-status" style="color: #aaa; font-weight: bold;">Free Plan</div>
+
+                <button id="btn-upgrade" class="vip-buy-btn" onclick="buySubscription()">
+                    <i class="fas fa-crown"></i> Upgrade to VIP (₹199)
+                </button>
+
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
+        </div>
+
+        <div id="ad-banner">
+            <span class="ad-text">[ AdMob Banner Area ]</span>
         </div>
 
         <div class="bottom-nav">
             <i class="fas fa-fire nav-icon active" onclick="switchTab('home', this)"></i>
-            <i class="fas fa-comment-dots nav-icon" onclick="switchTab('friends', this)"></i>
+            <i class="fas fa-comment-alt nav-icon" onclick="switchTab('messages', this)"></i>
             <i class="fas fa-user nav-icon" onclick="switchTab('profile', this)"></i>
         </div>
     </div>
 
     <div id="video-screen">
-        <div class="video-overlay-ui">
-            <div class="v-header" id="v-status">Connected...</div>
-            <div class="glass-btn add-friend-btn" onclick="addFriend()">
-                <i class="fas fa-user-plus"></i>
+        <div id="remote-video"></div>
+        
+        <div class="video-ui">
+            <div class="v-header" id="v-status">Connected</div>
+            <div class="add-friend-btn" onclick="addFriend()">
+                <i class="fas fa-user-plus" style="color: white; font-size: 1.2rem;"></i>
             </div>
             <div class="v-controls">
-                <button class="glass-btn ctrl-btn"><i class="fas fa-microphone-slash"></i></button>
-                <button class="glass-btn btn-end" onclick="endCall()"><i class="fas fa-phone"></i></button>
-                <button class="glass-btn ctrl-btn"><i class="fas fa-camera-rotate"></i></button>
+                <button class="ctrl-btn" style="background:#e74c3c" onclick="stopMatchingCycle()"><i class="fas fa-times"></i></button>
+                <button class="ctrl-btn btn-next" onclick="nextCall()">
+                    <span>NEXT</span> <i class="fas fa-forward"></i>
+                </button>
             </div>
         </div>
-        <div id="remote-video"></div> <div id="matching-loader">
-            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary-pink);"></i>
-            <p style="margin-top: 20px;">Searching...</p>
+
+        <div id="matching-loader">
+            <div class="loader-ring"></div>
+            <h3>Searching...</h3>
+            <button onclick="stopMatchingCycle()" style="margin-top:20px; background:none; border:1px solid #666; color:#888; padding:5px 15px; border-radius:20px;">Cancel</button>
         </div>
     </div>
 
-    <div id="chat-screen">
+    <div id="chat-interface">
         <div class="chat-head">
-            <i class="fas fa-arrow-left" onclick="closeChat()" style="font-size: 1.2rem;"></i>
-            <img id="chat-head-img" src="" style="width: 40px; height: 40px; border-radius: 50%;">
-            <strong id="chat-head-name">User</strong>
+            <i class="fas fa-arrow-left" onclick="closeChat()" style="font-size: 1.2rem; cursor: pointer;"></i>
+            <img id="chat-h-img" src="" style="width:35px; height:35px; border-radius:50%; object-fit: cover;" referrerpolicy="no-referrer">
+            <strong id="chat-h-name">Name</strong>
         </div>
-        <div id="chat-msgs" class="chat-msgs"></div>
-        <div class="chat-input-area">
-            <input type="text" id="msg-input" class="c-input" placeholder="Type message...">
-            <button class="glass-btn" style="width: 45px; background: var(--primary-pink);" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        <div id="chat-box" class="chat-body"></div>
+        <div class="chat-foot">
+            <input type="text" id="msg-in" class="glass-input" style="margin:0; border-radius:20px;" placeholder="Type message...">
+            <button onclick="sendMsg()" style="background:var(--primary-pink); border:none; width:45px; border-radius:50%; color:white;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -181,7 +227,6 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, remove, push, get, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- REPLACE WITH YOUR FIREBASE KEYS ---
         const firebaseConfig = {
             apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
             authDomain: "exploremeet---live.firebaseapp.com",
@@ -198,15 +243,21 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        // DEFAULT AVATAR (Fallback)
+        const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
         let currentUser = null;
-        let zp = null; // Zego Instance
+        let zp = null;
         let currentPartnerID = null;
         let myQueueKey = null;
         let activeChatID = null;
+        let isSearching = false;
 
-        // --- AUTH ---
+        // AUTH
         window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
-        window.logout = () => signOut(auth);
+        window.logout = () => {
+            if(confirm("Logout?")) signOut(auth);
+        };
 
         onAuthStateChanged(auth, (user) => {
             if(user) {
@@ -214,36 +265,111 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 
-                // Update UI
-                document.getElementById('home-dp').src = user.photoURL;
-                document.getElementById('profile-dp').src = user.photoURL;
-                document.getElementById('profile-name').innerText = user.displayName;
-                document.getElementById('profile-email').innerText = user.email;
-
-                // Load Friends
-                loadFriends();
+                // Initial Load (Use Google Photo First)
+                updateProfileUI(user.displayName, user.photoURL);
+                
+                // Then Load from DB (in case user uploaded a custom photo)
+                loadUserData();
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
         });
 
-        // --- NAVIGATION ---
-        window.switchTab = (tab, el) => {
-            // Hide all screens
-            document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
-            document.getElementById('screen-'+tab).classList.remove('hidden');
-            
-            // Update Nav Icons
-            document.querySelectorAll('.nav-icon').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
+        // Update UI helper
+        function updateProfileUI(name, photo) {
+            const finalPhoto = photo || DEFAULT_AVATAR;
+            document.getElementById('home-dp').src = finalPhoto;
+            document.getElementById('profile-dp').src = finalPhoto;
+            document.getElementById('profile-name').innerText = name || "User";
         }
 
+        function loadUserData() {
+            const uRef = ref(db, `users/${currentUser.uid}`);
+            onValue(uRef, (snap) => {
+                if(snap.exists()) {
+                    const d = snap.val();
+                    
+                    // IF CUSTOM PHOTO EXISTS, OVERRIDE GOOGLE PHOTO
+                    if(d.customPhoto) {
+                        updateProfileUI(d.displayName, d.customPhoto);
+                    } else {
+                        // Keep Google Photo
+                        updateProfileUI(d.displayName || currentUser.displayName, d.photoURL || currentUser.photoURL);
+                    }
+
+                    // DOB
+                    if(d.dob) document.getElementById('dob-input').value = d.dob;
+                    
+                    // VIP Check
+                    if(d.subscription === 'VIP') {
+                        document.getElementById('vip-tag').style.display = 'block';
+                        document.getElementById('plan-status').innerText = "VIP Member (Active)";
+                        document.getElementById('plan-status').style.color = "#ffd700";
+                        document.getElementById('btn-upgrade').style.display = 'none'; 
+                        document.getElementById('ad-banner').style.display = 'none'; 
+                    }
+                }
+            });
+            loadFriends();
+        }
+
+        // --- NEW: PHOTO UPLOAD LOGIC ---
+        window.triggerUpload = () => document.getElementById('file-upload').click();
+
+        window.uploadPhoto = (input) => {
+            if(input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Limit size to 1MB (Database restriction)
+                if(file.size > 1048576) {
+                    alert("Image too big! Please pick a smaller image (under 1MB).");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64String = e.target.result;
+                    // Save to Database
+                    update(ref(db, `users/${currentUser.uid}`), {
+                        customPhoto: base64String
+                    });
+                    // Immediate UI Update
+                    document.getElementById('profile-dp').src = base64String;
+                    document.getElementById('home-dp').src = base64String;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.saveDOB = () => {
+            const dob = document.getElementById('dob-input').value;
+            update(ref(db, `users/${currentUser.uid}`), { dob: dob });
+        };
+
         // --- MATCHING LOGIC ---
-        window.startMatching = () => {
+        window.startMatchingCycle = () => {
+            isSearching = true;
             document.getElementById('video-screen').style.display = 'block';
-            document.getElementById('matching-loader').style.display = 'flex';
-            
+            nextCall(); 
+        };
+
+        window.stopMatchingCycle = () => {
+            isSearching = false;
+            if(zp) zp.destroy();
+            if(myQueueKey) remove(ref(db, `queue/${myQueueKey}`));
+            document.getElementById('video-screen').style.display = 'none';
+        };
+
+        window.nextCall = () => {
+            if(!isSearching) return;
+            if(zp) zp.destroy();
+            document.getElementById('remote-video').innerHTML = ""; 
+            document.getElementById('matching-loader').style.display = 'flex'; 
+            findMatch();
+        };
+
+        async function findMatch() {
             const queueRef = ref(db, 'queue');
             get(queueRef).then((snap) => {
                 let found = false;
@@ -252,42 +378,35 @@
                         const data = child.val();
                         if(!found && data.uid !== currentUser.uid && !data.matched) {
                             found = true;
-                            // Match found!
                             set(ref(db, `queue/${child.key}/matched`), currentUser.uid);
                             currentPartnerID = data.uid;
-                            startVideo(child.key); // Use room ID
+                            joinVideo(child.key);
                         }
                     });
                 }
                 
                 if(!found) {
-                    // Create queue
                     myQueueKey = push(queueRef).key;
                     set(ref(db, `queue/${myQueueKey}`), { uid: currentUser.uid, matched: false });
-                    
-                    // Wait for match
                     onValue(ref(db, `queue/${myQueueKey}`), (s) => {
                         const d = s.val();
                         if(d && d.matched) {
                             currentPartnerID = d.matched;
-                            startVideo(myQueueKey);
-                            remove(ref(db, `queue/${myQueueKey}`)); // Clear queue
+                            joinVideo(myQueueKey);
+                            remove(ref(db, `queue/${myQueueKey}`));
                             myQueueKey = null;
                         }
                     });
-                    
-                    // Cleanup on disconnect
                     onDisconnect(ref(db, `queue/${myQueueKey}`)).remove();
                 }
             });
-        };
+        }
 
-        function startVideo(roomID) {
+        function joinVideo(roomID) {
             document.getElementById('matching-loader').style.display = 'none';
-            // Get Partner Name
             get(ref(db, `users/${currentPartnerID}`)).then(s => {
-                const name = s.exists() ? s.val().displayName : "Stranger";
-                document.getElementById('v-status').innerText = "Connected: " + name;
+                const n = s.exists() && s.val().displayName ? s.val().displayName : "New Friend";
+                document.getElementById('v-status').innerText = "Connected: " + n;
             });
 
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName);
@@ -296,116 +415,118 @@
                 container: document.getElementById('remote-video'),
                 scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
                 showPreJoinView: false,
-                showLeavingView: false,
-                onLeaveRoom: () => window.endCall()
+                showLeavingView: false, 
+                onLeaveRoom: () => {
+                    nextCall(); 
+                }
             });
         }
-
-        window.endCall = () => {
-            if(zp) zp.destroy();
-            if(myQueueKey) remove(ref(db, `queue/${myQueueKey}`));
-            document.getElementById('video-screen').style.display = 'none';
-        };
 
         // --- FRIEND & CHAT ---
         window.addFriend = () => {
             if(currentPartnerID) {
-                // Add to my friends
                 update(ref(db, `users/${currentUser.uid}/friends/${currentPartnerID}`), { since: Date.now() });
-                // Add me to their friends
                 update(ref(db, `users/${currentPartnerID}/friends/${currentUser.uid}`), { since: Date.now() });
-                alert("Friend Added!");
+                alert("Friend Added! Check Messages Tab.");
             }
         };
 
         function loadFriends() {
             onValue(ref(db, `users/${currentUser.uid}/friends`), async (snap) => {
-                const list = document.getElementById('friend-list-ui');
-                list.innerHTML = "";
-                
+                const box = document.getElementById('messages-list');
+                box.innerHTML = "";
                 if(snap.exists()) {
                     const ids = Object.keys(snap.val());
-                    for(const uid of ids) {
-                        // Fetch details
-                        const uSnap = await get(ref(db, `users/${uid}`));
-                        if(uSnap.exists()) { // Check if user exists in DB
-                            const u = uSnap.val();
-                            // If user details are missing (e.g. newly created via queue), use defaults or fetch from auth data if stored
-                            // Note: For this to work perfectly, you need to save user data on login (added below)
-                             
-                             const name = u.displayName || "Unknown User";
-                             const pic = u.photoURL || "https://via.placeholder.com/50";
-
+                    for(const fid of ids) {
+                        const s = await get(ref(db, `users/${fid}`));
+                        if(s.exists()) {
+                            const u = s.val();
+                            // Check for custom photo OR google photo
+                            const photo = u.customPhoto || u.photoURL || DEFAULT_AVATAR;
+                            
                             const div = document.createElement('div');
                             div.className = 'list-item';
                             div.innerHTML = `
-                                <img src="${pic}" class="u-avatar">
+                                <img src="${photo}" class="u-avatar" referrerpolicy="no-referrer">
                                 <div class="u-info">
-                                    <div class="u-name">${name}</div>
-                                    <div class="u-status">Tap to chat</div>
+                                    <div class="u-name">${u.displayName}</div>
+                                    <div class="u-msg">Tap to chat</div>
                                 </div>
                                 <i class="fas fa-comment-dots" style="color:#666"></i>
                             `;
-                            div.onclick = () => openChat(uid, name, pic);
-                            list.appendChild(div);
+                            div.onclick = () => openChat(fid, u.displayName, photo);
+                            box.appendChild(div);
                         }
                     }
                 } else {
-                    list.innerHTML = `<p style="text-align:center; color:#666; margin-top:50px;">No friends yet.</p>`;
+                    box.innerHTML = `<p style="text-align:center; color:#666; margin-top:50px;">No friends yet.</p>`;
                 }
             });
         }
-        
-        // Save User Data on Login (Crucial for Chat)
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                update(ref(db, `users/${user.uid}`), {
-                    displayName: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL
-                });
-            }
-        });
 
-        // --- CHAT LOGIC ---
+        // --- SUBSCRIPTION ---
+        window.buySubscription = () => {
+            var options = {
+                "key": "rzp_live_SBirtJRkaeGMgl", 
+                "amount": "19900", 
+                "currency": "INR",
+                "name": "ExploreMeet VIP",
+                "description": "1 Month Ad-Free Access",
+                "handler": function (response){
+                    update(ref(db, `users/${currentUser.uid}`), {
+                        subscription: 'VIP',
+                        subExpiry: Date.now() + (30*24*60*60*1000)
+                    });
+                    alert("Welcome to VIP! Ads Removed.");
+                },
+                "theme": { "color": "#ff0055" }
+            };
+            var rzp = new Razorpay(options);
+            rzp.open();
+        };
+
+        // --- CHAT UI ---
         window.openChat = (uid, name, pic) => {
             activeChatID = uid;
-            document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('chat-head-name').innerText = name;
-            document.getElementById('chat-head-img').src = pic;
+            document.getElementById('chat-interface').style.display = 'flex';
+            document.getElementById('chat-h-name').innerText = name;
+            document.getElementById('chat-h-img').src = pic || DEFAULT_AVATAR;
             
-            // Load Messages
             const room = [currentUser.uid, uid].sort().join('_');
             onValue(ref(db, `chats/${room}`), (snap) => {
-                const box = document.getElementById('chat-msgs');
-                box.innerHTML = "";
+                const b = document.getElementById('chat-box');
+                b.innerHTML = "";
                 if(snap.exists()) {
                     snap.forEach(c => {
                         const m = c.val();
                         const isMe = m.sender === currentUser.uid;
-                        box.innerHTML += `<div class="msg ${isMe ? 'msg-me' : 'msg-other'}">${m.text}</div>`;
+                        b.innerHTML += `<div class="msg ${isMe ? 'msg-me' : 'msg-other'}">${m.text}</div>`;
                     });
-                    box.scrollTop = box.scrollHeight;
+                    b.scrollTop = b.scrollHeight;
                 }
             });
         };
 
         window.closeChat = () => {
-            document.getElementById('chat-screen').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'none';
             activeChatID = null;
         };
 
         window.sendMsg = () => {
-            const txt = document.getElementById('msg-input').value.trim();
-            if(txt && activeChatID) {
+            const t = document.getElementById('msg-in').value;
+            if(t && activeChatID) {
                 const room = [currentUser.uid, activeChatID].sort().join('_');
-                push(ref(db, `chats/${room}`), {
-                    sender: currentUser.uid,
-                    text: txt,
-                    time: Date.now()
-                });
-                document.getElementById('msg-input').value = "";
+                push(ref(db, `chats/${room}`), { sender: currentUser.uid, text: t, time: Date.now() });
+                document.getElementById('msg-in').value = "";
             }
+        };
+
+        // NAVIGATION
+        window.switchTab = (t, el) => {
+            document.querySelectorAll('.screen-content').forEach(d => d.classList.add('hidden'));
+            document.getElementById('tab-'+t).classList.remove('hidden');
+            document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
         };
 
     </script>
