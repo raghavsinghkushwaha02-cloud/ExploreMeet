@@ -3,223 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ExploreMeet Premium</title>
+    <title>EMLive - Random Video Chat</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* --- 1. PREMIUM THEME VARIABLES --- */
+        /* --- THEME VARIABLES (Based on images) --- */
         :root {
-            --bg: #0f0f1a;       /* Deep Dark Blue/Black */
-            --card: rgba(255, 255, 255, 0.08); /* Glass Effect */
-            --text: #ffffff;
-            --primary: #ff0055;  /* Neon Pink (Romantic) */
-            --accent: #00d2ff;   /* Cyber Blue */
-            --gold: #ffd700;     /* VIP Gold */
+            --bg-dark: #0a0a12; /* Deep dark background */
+            --bg-card: #151520;
+            --primary-pink: #ff0055; /* Neon pink accent */
+            --text-white: #ffffff;
+            --text-muted: #888899;
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Montserrat', sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body, html { height: 100%; background-color: var(--bg-dark); color: var(--text-white); overflow: hidden; }
 
-        /* --- 2. ANIMATED BACKGROUND (Floating Hearts) --- */
-        .hearts-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
-        .heart { position: absolute; color: var(--primary); opacity: 0.3; animation: floatUp 15s infinite linear; text-shadow: 0 0 10px var(--primary); }
-        @keyframes floatUp { 0% { transform: translateY(100vh) scale(0.5); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: translateY(-10vh) scale(1.2); opacity: 0; } }
-
-        /* --- 3. UTILITIES & COMPONENTS --- */
+        /* --- UTILITIES --- */
         .hidden { display: none !important; }
-        .btn { border: none; outline: none; cursor: pointer; transition: 0.3s; font-family: inherit; }
-        .glass-card { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 4px 30px rgba(0,0,0,0.1); }
+        .btn-icon { border: none; background: none; color: var(--text-white); font-size: 1.5rem; cursor: pointer; }
+        .glass-input { width: 100%; padding: 15px 20px 15px 50px; background: rgba(255,255,255,0.08); border: none; border-radius: 30px; color: white; font-size: 1rem; outline: none; }
+        .search-icon-pos { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* --- APP CONTAINER & HEADER --- */
+        #app-container { height: 100%; display: flex; flex-direction: column; padding-bottom: 70px; /* space for nav bar */ }
+        .app-header { padding: 20px; font-weight: 800; font-size: 1.5rem; letter-spacing: 1px; }
+        .brand-pink { color: var(--primary-pink); }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-btn { background: white; color: black; padding: 15px 40px; border-radius: 30px; border: none; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3); }
+
+        /* --- HOME SCREEN (Radar & Start Btn - Img 15,16) --- */
+        .home-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
-        /* --- 4. LANDING SCREEN (LOGIN) --- */
-        #landing-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 2000; background: var(--bg);
+        .radar-wrapper { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
+        .my-avatar-home { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; z-index: 2; position: relative; }
+        .radar-ring { position: absolute; border: 2px solid var(--primary-pink); width: 100%; height: 100%; border-radius: 50%; opacity: 0; animation: radarWave 3s infinite linear; }
+        .radar-ring:nth-child(2) { animation-delay: 1s; }
+        .radar-ring:nth-child(3) { animation-delay: 2s; }
+        @keyframes radarWave { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        .start-btn-container { margin-top: auto; margin-bottom: 50px; }
+        .start-btn { 
+            background: linear-gradient(to right, var(--primary-pink), #ff4444); 
+            color: white; border: none; padding: 20px 80px; border-radius: 50px; 
+            font-size: 1.5rem; font-weight: 800; cursor: pointer; 
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 10px 40px rgba(255, 0, 85, 0.5); /* Pink glow */
         }
-        .app-logo { font-size: 3.5rem; font-weight: 800; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; letter-spacing: -2px; }
-        .login-btn {
-            background: white; color: #333; padding: 16px 40px; border-radius: 50px; font-weight: bold; font-size: 1.1rem;
-            display: flex; align-items: center; gap: 10px; margin-top: 40px; box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+
+        /* --- MESSAGES & CONTACTS LISTS (Img 18, 19) --- */
+        .list-screen { padding: 20px; display: flex; flex-direction: column; height: 100%; }
+        .screen-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; }
+        .search-bar-container { position: relative; margin-bottom: 25px; }
+        
+        .list-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .list-avatar { width: 55px; height: 55px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #333; }
+        .list-info { flex: 1; }
+        .list-name { font-weight: 600; font-size: 1.1rem; margin-bottom: 5px; }
+        .list-sub { color: var(--text-muted); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;}
+        .list-meta { text-align: right; color: var(--text-muted); font-size: 0.8rem; }
+        .online-status { color: #2ecc71; font-size: 0.8rem; }
+
+        .call-actions { display: flex; gap: 15px; }
+        .call-actions i { color: var(--text-muted); font-size: 1.2rem; }
+
+        .floating-add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+
+        /* --- BOTTOM NAVIGATION (Img 16, 18, 19) --- */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; 
+            background: var(--bg-dark); /* Matches bg */
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05); z-index: 100;
         }
-        .login-btn:active { transform: scale(0.95); }
+        .nav-item { color: var(--text-muted); font-size: 1.4rem; position: relative; padding: 10px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary-pink); }
+        /* Pink dot indicator seen in images */
+        .nav-item.active::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--primary-pink); border-radius: 50%; box-shadow: 0 0 10px var(--primary-pink); }
 
-        /* --- 5. MAIN APP INTERFACE --- */
-        #app-interface { display: none; height: 100%; flex-direction: column; }
-        
-        .header { height: 65px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(15,15,26,0.8); backdrop-filter: blur(10px); }
-        .vip-badge { background: linear-gradient(45deg, var(--gold), #ffaa00); color: black; padding: 5px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: none; box-shadow: 0 0 10px var(--gold); }
 
-        .screen-container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 90px; position: relative; }
-        .screen { display: none; flex-direction: column; align-items: center; width: 100%; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .active-screen { display: flex; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- VIDEO CALL SCREEN (Img 17) --- */
+        #video-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; }
+        
+        /* Zego containers */
+        #remote-video-container { width: 100%; height: 100%; object-fit: cover; }
+        #local-video-container { position: absolute; bottom: 120px; right: 20px; width: 100px; height: 150px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); z-index: 2002; }
 
-        /* HOME TAB */
-        .radar-container { width: 260px; height: 260px; position: relative; display: flex; align-items: center; justify-content: center; margin-top: 40px; }
-        .radar-circle { position: absolute; border: 1px solid var(--primary); width: 100%; height: 100%; border-radius: 50%; opacity: 0; animation: radarWave 3s infinite linear; }
-        .radar-circle:nth-child(2) { animation-delay: 1s; }
-        .radar-circle:nth-child(3) { animation-delay: 2s; }
-        @keyframes radarWave { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+        /* Video Overlay UI */
+        .video-header { position: absolute; top: 40px; width: 100%; text-align: center; z-index: 2003; font-weight: 600; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         
-        .my-avatar-lg { width: 90px; height: 90px; border-radius: 50%; border: 3px solid white; z-index: 2; object-fit: cover; box-shadow: 0 0 20px var(--primary); }
-        
-        .start-match-btn {
-            background: linear-gradient(135deg, var(--primary), #ff4444); color: white; padding: 22px 70px;
-            border-radius: 50px; font-size: 1.4rem; font-weight: 800; margin-top: 50px; border: 4px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 50px rgba(255, 0, 85, 0.5); animation: heartbeat 2s infinite;
+        /* Top floating buttons (Chat & Friend) - Img 17 top corners */
+        .top-float-btn { position: absolute; top: 50px; width: 50px; height: 50px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.2rem; z-index: 2003; cursor: pointer; }
+        #btn-float-chat { left: 20px; }
+        #btn-float-friend { right: 20px; }
+
+        /* Bottom Controls Bar - Img 17 bottom */
+        .video-controls { 
+            position: absolute; bottom: 30px; width: 100%; 
+            display: flex; justify-content: space-evenly; align-items: center; 
+            z-index: 2003; 
         }
-        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .control-btn { width: 55px; height: 55px; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; cursor: pointer; border: none; color: white;}
+        .btn-end-call { width: 75px; height: 75px; background: var(--primary-pink); font-size: 2rem; box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4); }
 
-        /* PROFILE TAB */
-        .profile-card { width: 100%; padding: 30px; text-align: center; margin-top: 10px; }
-        .profile-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 15px; object-fit: cover; }
-        .input-box { width: 100%; margin-top: 15px; text-align: left; }
-        .input-box label { font-size: 0.8rem; color: #888; margin-left: 10px; }
-        .styled-input { width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid #333; border-radius: 12px; color: white; margin-top: 5px; box-sizing: border-box; }
-        
-        .action-btn { width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; font-size: 1rem; }
-        .btn-save { background: var(--accent); color: #000; }
-        .btn-vip { background: var(--gold); color: #000; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-        /* CHATS TAB */
-        .friend-row { width: 100%; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
-        .initial-icon { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(45deg, #ff0055, #8e44ad); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-        /* BOTTOM NAV */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: rgba(15,15,26,0.9); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); z-index: 100; }
-        .nav-item { font-size: 1.6rem; color: #666; transition: 0.3s; position: relative; }
-        .nav-item.active { color: var(--primary); transform: translateY(-5px); text-shadow: 0 0 15px var(--primary); }
-        .nav-item.active::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
-
-        /* ADS */
-        #ad-container { position: fixed; bottom: 75px; width: 100%; min-height: 50px; background: #000; display: flex; align-items: center; justify-content: center; z-index: 99; }
-        .ad-placeholder { color: #444; font-size: 0.7rem; letter-spacing: 1px; }
-
-        /* --- 6. VIDEO CALL OVERLAY (Z-INDEX 5000) --- */
-        #video-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
-        #video-embed { width: 100%; height: 100%; }
-        
-        #in-call-controls { position: absolute; bottom: 100px; right: 20px; z-index: 5002; display: flex; flex-direction: column; gap: 20px; }
-        .round-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .btn-add-friend { background: white; color: var(--primary); }
-        .btn-next-match { background: rgba(0,0,0,0.6); color: white; border: 2px solid white; backdrop-filter: blur(5px); }
-
-        #next-match-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(15,15,26,0.95); z-index: 5003; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        /* Loading overlay for matching */
+        #matching-loader { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,18,0.9); z-index: 2004; display: none; flex-direction: column; justify-content: center; align-items: center; }
 
     </style>
 </head>
 <body>
 
-    <div class="hearts-bg" id="hearts-container"></div>
-
-    <div id="landing-screen">
-        <div class="app-logo">ExploreMeet</div>
-        <p style="color:#aaa; letter-spacing: 2px; font-size: 0.9rem;">DATE. CHAT. CONNECT.</p>
-        <button id="login-btn" class="login-btn">
+    <div id="login-screen">
+        <div class="app-header" style="font-size: 2.5rem; margin-bottom: 50px;">EM<span class="brand-pink">Live</span></div>
+        <button id="google-login-btn" class="login-btn">
             <i class="fab fa-google"></i> Login with Google
         </button>
-        <div id="loading-spinner" class="hidden" style="margin-top: 20px; color: var(--primary);">
-            <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-        </div>
     </div>
 
-    <div id="app-interface">
-        <div class="header">
-            <div style="font-weight: 800; font-size: 1.2rem;">EM<span style="color:var(--primary);">Live</span></div>
-            <div id="vip-status" class="vip-badge"><i class="fas fa-crown"></i> VIP MEMBER</div>
-        </div>
 
-        <div class="screen-container">
-            
-            <div id="screen-home" class="screen active-screen">
-                <div class="radar-container">
-                    <div class="radar-circle"></div><div class="radar-circle"></div><div class="radar-circle"></div>
-                    <img id="home-avatar" src="" class="my-avatar-lg">
-                </div>
-                <h2 style="margin-top: 40px; margin-bottom: 5px;">Find Your Match</h2>
-                <p style="color: #888; font-size: 0.9rem;">Random Video Chat</p>
-                <button class="btn start-match-btn" onclick="startMatching()">
+    <div id="app-container" class="hidden">
+        
+        <div class="app-header" id="main-header">EM<span class="brand-pink">Live</span></div>
+
+        <div id="tab-home" class="screen-content home-content">
+            <div class="radar-wrapper">
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <img id="my-home-avatar" src="" class="my-avatar-home">
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 10px;">Find Your Match</h2>
+            <p style="color: var(--text-muted);">Random Video Chat</p>
+
+            <div class="start-btn-container">
+                <button class="start-btn" onclick="startMatchingBtnClick()">
                     <i class="fas fa-video"></i> START
                 </button>
             </div>
+        </div>
 
-            <div id="screen-chats" class="screen">
-                <h2 style="align-self: flex-start; margin-bottom: 20px;">Connections</h2>
-                <div id="friends-list" style="width: 100%;">
-                    </div>
+
+        <div id="tab-messages" class="screen-content list-screen hidden">
+            <div class="screen-title">Messages</div>
+            <div class="search-bar-container">
+                <i class="fas fa-search search-icon-pos"></i>
+                <input type="text" class="glass-input" placeholder="Search messages">
             </div>
-
-            <div id="screen-profile" class="screen">
-                <div class="glass-card profile-card">
-                    <img id="profile-img" src="" class="profile-img">
-                    <h2 id="profile-name">User Name</h2>
-                    <p id="profile-email" style="font-size: 0.8rem; color: #aaa;">user@email.com</p>
-
-                    <div class="input-box">
-                        <label>Your Bio</label>
-                        <input type="text" id="inp-bio" class="styled-input" placeholder="I love music & travel...">
-                    </div>
-                    <div class="input-box">
-                        <label>Date of Birth</label>
-                        <input type="date" id="inp-dob" class="styled-input">
-                    </div>
-
-                    <button class="btn action-btn btn-save" onclick="saveProfile()">Save Profile</button>
-                    
-                    <button id="vip-buy-btn" class="btn action-btn btn-vip" onclick="buyVIP()">
-                        <i class="fas fa-crown"></i> Upgrade to VIP (₹199)
-                    </button>
-
-                    <button onclick="handleLogout()" style="margin-top: 30px; background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 10px 30px; border-radius: 30px; cursor: pointer;">Logout</button>
+            <div id="messages-list">
+                <div class="list-item">
+                    <img src="https://i.pravatar.cc/100?img=5" class="list-avatar">
+                    <div class="list-info"><div class="list-name">Priya</div><div class="list-sub">Hey, that was fun! Let's chat...</div></div>
+                    <div class="list-meta">Now</div>
                 </div>
+                <div class="list-item">
+                    <img src="https://i.pravatar.cc/100?img=8" class="list-avatar">
+                    <div class="list-info"><div class="list-name">Rahul</div><div class="list-sub">Hi, how are you doing?</div></div>
+                    <div class="list-meta">Now</div>
+                </div>
+                </div>
+            <div class="floating-add-btn"><i class="fas fa-plus"></i></div>
+        </div>
+
+
+        <div id="tab-contacts" class="screen-content list-screen hidden">
+            <div class="screen-title">Contacts</div>
+            <div class="search-bar-container">
+                <i class="fas fa-search search-icon-pos"></i>
+                <input type="text" class="glass-input" placeholder="Search friends">
             </div>
-
+            <div id="contacts-list">
+                <p style="color: var(--text-muted); text-align: center; margin-top: 20px;">Loading friends...</p>
+            </div>
+            <div class="floating-add-btn"><i class="fas fa-plus"></i></div>
         </div>
 
-        <div id="ad-container">
-            <span class="ad-placeholder">[ AdMob Banner will load here ]</span>
-        </div>
 
         <div class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home')"><i class="fas fa-fire"></i></div>
-            <div class="nav-item" onclick="switchTab('chats')"><i class="fas fa-heart"></i></div>
-            <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i></div>
+            <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-fire"></i></div>
+            <div class="nav-item" onclick="switchTab('messages', this)"><i class="fas fa-comment-dots"></i></div>
+            <div class="nav-item" onclick="switchTab('contacts', this)"><i class="fas fa-user-friends"></i></div>
+            <div class="nav-item"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
-    <div id="video-layer">
-        <div id="video-embed"></div>
-        
-        <div id="in-call-controls">
-            <button class="btn round-btn btn-add-friend" onclick="addFriend()"><i class="fas fa-heart"></i></button>
-            <button class="btn round-btn btn-next-match" onclick="nextMatch()"><i class="fas fa-forward"></i></button>
+
+    <div id="video-screen">
+        <div class="video-header" id="video-partner-name">Connected to: ...</div>
+
+        <div class="top-float-btn" id="btn-float-chat" onclick="alert('Chat feature coming soon!')"><i class="fas fa-comment-alt"></i></div>
+        <div class="top-float-btn" id="btn-float-friend" onclick="addCurrentPartnerAsFriend()"><i class="fas fa-user-plus"></i></div>
+
+        <div id="remote-video-container"></div> <div id="local-video-container"></div>  <div class="video-controls">
+            <button class="control-btn"><i class="fas fa-microphone-slash"></i></button>
+            <button class="control-btn btn-end-call" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+            <button class="control-btn"><i class="fas fa-camera-rotate"></i></button>
         </div>
 
-        <div id="next-match-overlay">
-            <h1 style="color: white; margin-bottom: 10px;">Call Ended</h1>
-            <p style="color: #aaa; margin-bottom: 40px;">What's next?</p>
-            
-            <button class="btn start-match-btn" onclick="retryMatch()" style="margin-top: 0; padding: 18px 50px; font-size: 1.2rem;">
-                FIND NEXT
-            </button>
-            
-            <button onclick="exitVideoMode()" style="margin-top: 30px; background: transparent; color: #888; border: none; text-decoration: underline; cursor: pointer;">
-                Back to Home
-            </button>
+        <div id="matching-loader">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary-pink); margin-bottom: 20px;"></i>
+            <h3>Searching for someone...</h3>
         </div>
     </div>
+
 
     <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, remove, push, get, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- FIREBASE CONFIG ---
+        // --- CONFIGURATION (TEST CREDENTIALS - REPLACE FOR PRODUCTION) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
+            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA", // Demo key
             authDomain: "exploremeet---live.firebaseapp.com",
             databaseURL: "https://exploremeet---live-default-rtdb.firebaseio.com",
             projectId: "exploremeet---live",
@@ -227,103 +225,72 @@
             messagingSenderId: "169038218786",
             appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
+        // ZegoCloud Test Credentials
+        const appID = 2013687880; 
+        const serverSecret = "2576346c100ee42b720e88db26d01e53";
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // GLOBAL VARS
         let currentUser = null;
-        let zegoInstance = null;
-        let currentPartnerUID = null;
+        let zp = null; // Zego instance
+        let currentPartnerUid = null;
+        let myQueueRef = null;
 
-        // --- BACKGROUND ANIMATION ---
-        const heartsContainer = document.getElementById('hearts-container');
-        for(let i=0; i<20; i++){
-            let h = document.createElement('div');
-            h.className = 'heart'; h.innerHTML = '<i class="fas fa-heart"></i>';
-            h.style.left = Math.random() * 100 + 'vw';
-            h.style.animationDuration = (Math.random() * 10 + 10) + 's';
-            h.style.fontSize = (Math.random() * 20 + 10) + 'px';
-            heartsContainer.appendChild(h);
-        }
-
-        // --- AUTH & SECURITY ---
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            document.getElementById('login-btn').style.display = 'none';
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            try {
-                await signInWithPopup(auth, new GoogleAuthProvider());
-            } catch(e) {
-                alert("Login Failed: " + e.message);
-                document.getElementById('login-btn').style.display = 'flex';
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
+        // --- AUTHENTICATION ---
+        document.getElementById('google-login-btn').addEventListener('click', () => {
+            signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert(e.message));
         });
 
-        window.handleLogout = () => signOut(auth);
-
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                // SECURITY: CHECK BAN
-                const banRef = ref(db, `users/${user.uid}/isBanned`);
-                const banSnap = await get(banRef);
-                if(banSnap.exists() && banSnap.val() === true) {
-                    alert("🚫 Your account has been BANNED by Admin.");
-                    signOut(auth);
-                    return;
-                }
-
                 currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
                 
-                // SAVE USER DATA FOR ADMIN
-                update(ref(db, `users/${user.uid}`), {
-                    name: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    lastSeen: Date.now()
-                });
-
-                // UI UPDATE
-                document.getElementById('landing-screen').classList.add('hidden');
-                document.getElementById('app-interface').style.display = 'flex';
-                document.getElementById('home-avatar').src = user.photoURL;
-                document.getElementById('profile-img').src = user.photoURL;
-                document.getElementById('profile-name').innerText = user.displayName;
-                document.getElementById('profile-email').innerText = user.email;
-
-                // LOAD PROFILE DATA
+                // Set profile pic on home screen
+                document.getElementById('my-home-avatar').src = user.photoURL;
+                
+                // Save user to DB and set online status
                 const userRef = ref(db, `users/${user.uid}`);
-                get(userRef).then((snap) => {
-                    const data = snap.val();
-                    if(data.bio) document.getElementById('inp-bio').value = data.bio;
-                    if(data.dob) document.getElementById('inp-dob').value = data.dob;
-                    if(data.isVIP) activateVIP();
+                update(userRef, {
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    status: 'online'
                 });
+                onDisconnect(userRef).update({ status: 'offline' });
 
-                // LOAD NOTIFICATIONS
-                loadNotifications();
-                // LOAD ADS (If not VIP)
-                loadAdSettings();
-                // LOAD FRIENDS
-                loadFriends();
-
+                loadContacts(); // Load friends list
             } else {
-                currentUser = null;
-                document.getElementById('landing-screen').classList.remove('hidden');
-                document.getElementById('app-interface').style.display = 'none';
-                document.getElementById('loading-spinner').classList.add('hidden');
-                document.getElementById('login-btn').style.display = 'flex';
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
             }
         });
 
-        // --- MATCHING SYSTEM ---
-        window.startMatching = () => {
-            document.getElementById('video-layer').style.display = 'block';
-            document.getElementById('video-embed').innerHTML = '<div style="color:white;text-align:center;padding-top:60%;"><h3><i class="fas fa-search fa-spin"></i> Searching...</h3></div>';
-            document.getElementById('next-match-overlay').style.display = 'none';
-            document.getElementById('in-call-controls').style.display = 'none';
 
+        // --- NAVIGATION TABS LOGIC ---
+        window.switchTab = (tabName, clickedNavEl) => {
+            // Hide all tabs
+            document.querySelectorAll('.screen-content').forEach(el => el.classList.add('hidden'));
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            
+            // Update active nav icon
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            clickedNavEl.classList.add('active');
+
+            // Hide header on non-home tabs based on image design
+            document.getElementById('main-header').style.display = (tabName === 'home') ? 'block' : 'none';
+        };
+
+
+        // --- MATCHING & VIDEO LOGIC ---
+        window.startMatchingBtnClick = () => {
+            // Show video screen with loader immediately
+            document.getElementById('video-screen').style.display = 'block';
+            document.getElementById('matching-loader').style.display = 'flex';
             findMatch();
         };
 
@@ -333,178 +300,144 @@
             let matchFound = false;
 
             if (snapshot.exists()) {
+                // Look for someone waiting
                 snapshot.forEach((child) => {
-                    if (!matchFound && child.val().uid !== currentUser.uid && !child.val().matchedWith) {
+                    const data = child.val();
+                    if (!matchFound && data.uid !== currentUser.uid && !data.matchedWith) {
                         matchFound = true;
-                        currentPartnerUID = child.val().uid;
+                        currentPartnerUid = data.uid;
                         const roomID = child.key;
-                        set(ref(db, `queue/${child.key}/matchedWith`), currentUser.uid);
-                        initZego(roomID);
+                        // Mark them as matched with us
+                        set(ref(db, `queue/${roomID}/matchedWith`), currentUser.uid);
+                        // Join the room they created
+                        joinZegoRoom(roomID, currentPartnerUid);
                     }
                 });
             }
 
             if (!matchFound) {
-                const myRef = push(queueRef);
-                set(myRef, { uid: currentUser.uid, matchedWith: "" });
-                onValue(myRef, (snap) => {
-                    if (snap.val()?.matchedWith) {
-                        currentPartnerUID = snap.val().matchedWith;
-                        initZego(myRef.key);
-                        setTimeout(() => remove(myRef), 5000);
+                // No one waiting, add ourselves to queue
+                myQueueRef = push(queueRef);
+                set(myQueueRef, { uid: currentUser.uid, matchedWith: "" });
+
+                // Listen for someone matching with us
+                onValue(myQueueRef, (snap) => {
+                    const data = snap.val();
+                    if (data && data.matchedWith) {
+                        currentPartnerUid = data.matchedWith;
+                        // Someone matched us, join our own room ID
+                        joinZegoRoom(myQueueRef.key, currentPartnerUid);
+                        // Cleanup queue entry
+                        remove(myQueueRef);
+                        myQueueRef = null;
                     }
                 });
-                onDisconnect(myRef).remove();
+                // Cleanup if we disconnect while waiting
+                onDisconnect(myQueueRef).remove();
             }
         }
 
-        // --- ZEGO VIDEO (NO RELOAD) ---
-        function initZego(roomID) {
-            document.getElementById('video-embed').innerHTML = ""; // Clear loader
-            const appID = 2013687880; 
-            const serverSecret = "2576346c100ee42b720e88db26d01e53";
+        async function joinZegoRoom(roomID, partnerUid) {
+            // Fetch partner's name for the header
+            const partnerSnap = await get(ref(db, `users/${partnerUid}`));
+            const partnerName = partnerSnap.exists() ? partnerSnap.val().displayName : "Stranger";
+            document.getElementById('video-partner-name').innerText = `Connected to: ${partnerName}`;
+
+            // Hide loader, show video UI
+            document.getElementById('matching-loader').style.display = 'none';
+
+            // Initialize Zego
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName);
-            
-            zegoInstance = ZegoUIKitPrebuilt.create(kitToken);
-            zegoInstance.joinRoom({
-                container: document.getElementById('video-embed'),
-                scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
+            zp = ZegoUIKitPrebuilt.create(kitToken);
+
+            zp.joinRoom({
+                container: document.getElementById('remote-video-container'),
+                scenario: {
+                    mode: ZegoUIKitPrebuilt.OneONoneCall,
+                },
                 showPreJoinView: false,
-                turnOnCameraWhenJoining: true,
-                showLeavingView: false, // Critical for custom exit
+                showMyCameraToggleButton: false,
+                showMyMicrophoneToggleButton: false,
+                showAudioVideoSettingsButton: false,
+                showLeavingView: false, // Don't show Zego's end screen
+                // Display local video in the small container (PiP)
                 onJoinRoom: () => {
-                    document.getElementById('in-call-controls').style.display = 'flex';
+                     // Zego UI Kit handles placing the local video, 
+                     // but we need to hack it slightly to put it in our custom PiP container if needed.
+                     // For simplicity in this kit, we let Zego handle the layout which defaults to PiP in OneOnOne mode.
+                     // We just ensure our custom UI sits on top.
                 },
                 onLeaveRoom: () => {
-                    // Custom Exit Logic - Show Overlay
-                    if(zegoInstance) zegoInstance.destroy();
-                    document.getElementById('in-call-controls').style.display = 'none';
-                    document.getElementById('video-embed').innerHTML = "";
-                    document.getElementById('next-match-overlay').style.display = 'flex';
+                    // Handle if the other person leaves
+                    exitVideoScreen();
                 }
             });
         }
 
-        window.nextMatch = () => {
-            if(zegoInstance) zegoInstance.destroy(); // Triggers onLeaveRoom
-            // Force immediate retry
-            setTimeout(() => {
-                document.getElementById('next-match-overlay').style.display = 'none';
-                window.startMatching();
-            }, 500);
+        window.endCall = () => {
+            if (zp) zp.destroy();
+            if (myQueueRef) remove(myQueueRef); // Stop searching if hanging up during search
+            exitVideoScreen();
         };
 
-        window.retryMatch = () => window.startMatching();
-        
-        window.exitVideoMode = () => {
-            document.getElementById('video-layer').style.display = 'none';
-        };
-
-        window.addFriend = () => {
-            if(currentPartnerUID) {
-                update(ref(db), { [`users/${currentUser.uid}/friends/${currentPartnerUID}`]: true });
-                alert("❤️ Friend Added!");
-            }
-        };
-
-        // --- PAYMENT (RAZORPAY) ---
-        window.buyVIP = () => {
-            var options = {
-                "key": "rzp_live_SBirtJRkaeGMgl", // LIVE KEY
-                "amount": "19900", // 199 INR
-                "currency": "INR",
-                "name": "ExploreMeet VIP",
-                "description": "Unlock Premium Features",
-                "handler": function (response){
-                    update(ref(db, `users/${currentUser.uid}`), { isVIP: true });
-                    activateVIP();
-                    alert("Payment Successful! You are now VIP.");
-                },
-                "theme": { "color": "#ff0055" }
-            };
-            var rzp = new Razorpay(options);
-            rzp.open();
-        };
-
-        function activateVIP() {
-            document.getElementById('vip-status').style.display = 'block';
-            document.getElementById('vip-buy-btn').innerHTML = "<i class='fas fa-check'></i> VIP ACTIVE";
-            document.getElementById('vip-buy-btn').disabled = true;
-            document.getElementById('ad-container').style.display = 'none'; // Hide Ads
+        function exitVideoScreen() {
+            document.getElementById('video-screen').style.display = 'none';
+            document.getElementById('matching-loader').style.display = 'flex'; // Reset loader for next time
+            // Return to home screen
+            switchTab('home', document.querySelector('.nav-item.active'));
         }
 
-        // --- ADMIN ADS & SETTINGS ---
-        function loadAdSettings() {
-            const adRef = ref(db, 'settings/ads');
-            onValue(adRef, (snap) => {
-                const settings = snap.val();
-                if(settings && settings.status === 'on' && !document.getElementById('vip-status').style.display.includes('block')) {
-                    // If Ads are ON and User is NOT VIP
-                    document.getElementById('ad-container').style.display = 'flex';
-                    // In a real APK, the AdMob SDK intercepts this div. 
-                    // For now, we show a placeholder text.
-                    document.querySelector('.ad-placeholder').innerText = "Banner ID: " + settings.banner;
+        // --- IN-CALL ACTIONS ---
+        window.addCurrentPartnerAsFriend = () => {
+            if(!currentPartnerUid) return;
+            // Add partner to my friends list in DB
+            update(ref(db, `users/${currentUser.uid}/friends`), {
+                [currentPartnerUid]: true
+            });
+            alert("Friend added successfully! Check your contacts list.");
+        }
+
+
+        // --- LOAD CONTACTS (Img 19 Logic) ---
+        function loadContacts() {
+            const friendsRef = ref(db, `users/${currentUser.uid}/friends`);
+            onValue(friendsRef, async (snapshot) => {
+                const listContainer = document.getElementById('contacts-list');
+                listContainer.innerHTML = ''; // Clear current list
+
+                if (snapshot.exists()) {
+                    const friendUids = Object.keys(snapshot.val());
+                    for (const friendUid of friendUids) {
+                        // Fetch friend's details
+                        const friendSnap = await get(ref(db, `users/${friendUid}`));
+                        if(friendSnap.exists()) {
+                            const friendData = friendSnap.val();
+                            const isOnline = friendData.status === 'online';
+                            const statusText = isOnline ? 'Online' : 'Offline';
+                            const statusClass = isOnline ? 'online-status' : '';
+
+                            const listItem = `
+                                <div class="list-item">
+                                    <img src="${friendData.photoURL}" class="list-avatar">
+                                    <div class="list-info">
+                                        <div class="list-name">${friendData.displayName}</div>
+                                        <div class="list-sub ${statusClass}">${statusText}</div>
+                                    </div>
+                                    <div class="call-actions">
+                                        <i class="fas fa-phone-alt"></i>
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                </div>
+                            `;
+                            listContainer.innerHTML += listItem;
+                        }
+                    }
                 } else {
-                    document.getElementById('ad-container').style.display = 'none';
+                    listContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">No friends yet. Add people from video calls!</p>';
                 }
             });
         }
 
-        function loadNotifications() {
-            const notifRef = ref(db, `users/${currentUser.uid}/notifications`);
-            onValue(notifRef, (snap) => {
-                if(snap.exists()) {
-                    // If new message from Admin exists, show alert
-                    const msgs = snap.val();
-                    const lastKey = Object.keys(msgs).pop();
-                    alert("Message from Admin: " + msgs[lastKey].text);
-                    remove(ref(db, `users/${currentUser.uid}/notifications`)); // Clear after reading
-                }
-            });
-        }
-
-        // --- PROFILE & FRIENDS ---
-        window.saveProfile = () => {
-            const bio = document.getElementById('inp-bio').value;
-            const dob = document.getElementById('inp-dob').value;
-            update(ref(db, `users/${currentUser.uid}`), { bio: bio, dob: dob });
-            alert("Profile Updated!");
-        };
-
-        function loadFriends() {
-            onValue(ref(db, `users/${currentUser.uid}/friends`), (snap) => {
-                const list = document.getElementById('friends-list');
-                list.innerHTML = "";
-                if(snap.exists()) {
-                    snap.forEach(child => {
-                        list.innerHTML += `
-                        <div class="glass-card friend-row">
-                            <div class="initial-icon"><i class="fas fa-user"></i></div>
-                            <div>
-                                <h4 style="margin:0;">Connection</h4>
-                                <small style="color:#aaa;">ID: ${child.key.substring(0,6)}...</small>
-                            </div>
-                            <button class="btn" style="margin-left:auto; background:var(--primary); color:white; padding:5px 15px; border-radius:20px;">Chat</button>
-                        </div>`;
-                    });
-                } else {
-                    list.innerHTML = "<p style='text-align:center; color:#666;'>No matches yet.</p>";
-                }
-            });
-        }
-
-        // --- TABS ---
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById('screen-' + tab).classList.add('active-screen');
-            
-            let idx = 0;
-            if(tab === 'chats') idx = 1;
-            if(tab === 'profile') idx = 2;
-            document.querySelectorAll('.nav-item')[idx].classList.add('active');
-        };
     </script>
 </body>
 </html>
