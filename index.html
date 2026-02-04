@@ -5,507 +5,372 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ExploreMeet Chat</title>
     
-    <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
         :root {
-            --primary: #ff4b7d; /* Romantic Pink */
-            --primary-dark: #d6336c;
-            --bg: #121212;
-            --surface: #1e1e2c;
+            --primary: #ff4081; /* Pink */
+            --dark: #12050f;    /* Deep Romantic Dark */
+            --card: #2a0e1e;
             --text: #ffffff;
-            --glass: rgba(30, 30, 44, 0.85);
+            --gradient: linear-gradient(135deg, #ff4081, #c51162);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body { background-color: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            overflow: hidden; /* Prevent scroll on video */
+            height: 100vh;
+        }
 
-        /* --- Utility & Animations --- */
-        .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 125, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 125, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 125, 0); } }
+        /* --- Screens --- */
+        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; }
+        .active { display: flex; }
 
         /* --- Login Screen --- */
         #login-screen {
-            height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: linear-gradient(135deg, #121212 0%, #2a0a14 100%);
-            text-align: center; padding: 20px;
+            background: radial-gradient(circle at center, #3d0026 0%, #000000 100%);
+            text-align: center;
         }
-        .logo-text { font-size: 2.5rem; font-weight: 600; background: linear-gradient(to right, #ff9a9e, #ff4b7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-        .tagline { font-size: 1rem; opacity: 0.7; margin-bottom: 40px; }
-        
+        .logo { font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; font-weight: 700; text-shadow: 0 0 10px rgba(255,64,129,0.5); }
+        .tagline { margin-bottom: 40px; color: #ccc; }
         .btn-google {
-            background: white; color: #333; padding: 12px 24px; border-radius: 50px; border: none; font-weight: 600;
-            display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 1rem;
+            background: white; color: #333; border: none; padding: 12px 24px;
+            border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
         }
 
-        /* --- Main App Area --- */
-        #app-screen { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; }
-
-        /* Top Bar */
-        .top-bar {
-            position: absolute; top: 0; width: 100%; padding: 15px; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        /* --- Home Screen --- */
+        #home-screen { padding: 20px; box-sizing: border-box; justify-content: flex-start; padding-top: 60px; }
+        .profile-card {
+            background: var(--card); padding: 20px; border-radius: 20px; width: 90%; max-width: 400px;
+            text-align: center; margin-bottom: 30px; border: 1px solid #4a1c36;
         }
-        .vip-badge {
-            background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; padding: 4px 12px;
-            border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 0 10px #ffd700;
-        }
-
-        /* Video Container */
-        .video-container { flex: 1; position: relative; background: #000; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        .profile-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; }
+        .vip-badge { background: gold; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; display: none; }
+        .is-vip .vip-badge { display: inline-block; }
         
-        /* Remote Video (Full Screen) */
-        #remote-video { width: 100%; height: 100%; }
+        .btn-match {
+            background: var(--gradient); color: white; border: none; padding: 15px 40px;
+            border-radius: 50px; font-size: 1.2rem; font-weight: 600; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,64,129,0.4); animation: pulse 2s infinite;
+        }
         
-        /* Local Video (PiP) */
-        #local-video {
-            position: absolute; top: 70px; right: 15px; width: 100px; height: 140px;
-            border-radius: 12px; border: 2px solid var(--primary); object-fit: cover;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 5;
+        .btn-vip {
+            margin-top: 20px; background: transparent; border: 2px solid gold; color: gold;
+            padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer;
         }
 
-        /* State Overlay (Searching/Waiting) */
-        #status-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 4;
+        /* --- Video Screen --- */
+        #video-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        #video-overlay {
+            position: absolute; bottom: 20px; left: 0; width: 100%; z-index: 10;
+            display: flex; justify-content: center; gap: 20px; pointer-events: none;
         }
-        .loading-heart { font-size: 4rem; color: var(--primary); animation: beat 1s infinite; }
-        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-
-        /* Controls Bottom */
-        .controls-area {
-            position: absolute; bottom: 0; width: 100%; padding: 15px 20px 30px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            z-index: 10; display: flex; flex-direction: column; gap: 10px;
+        .control-btn {
+            pointer-events: auto; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 15px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+            backdrop-filter: blur(5px); transition: transform 0.2s;
         }
+        .control-btn.next { background: var(--primary); border: none; }
+        .control-btn:active { transform: scale(0.9); }
 
-        /* Chat Messages Area */
-        #chat-messages {
-            height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
-            mask-image: linear-gradient(to bottom, transparent, black 20%);
-            margin-bottom: 10px;
-        }
-        .msg { padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; max-width: 80%; width: fit-content; }
-        .msg.me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.them { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); align-self: flex-start; border-bottom-left-radius: 2px; }
-
-        /* Action Buttons */
-        .actions-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-        
-        .btn-circle {
-            width: 50px; height: 50px; border-radius: 50%; border: none;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.5rem; color: white; cursor: pointer; transition: transform 0.2s;
-        }
-        .btn-circle:active { transform: scale(0.9); }
-        
-        .btn-chat { background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); }
-        .btn-skip { background: #333; color: #fff; }
-        .btn-like { background: var(--primary); box-shadow: 0 0 15px rgba(255, 75, 125, 0.6); }
-
-        /* Chat Input */
-        #input-area { display: flex; gap: 10px; margin-top: 10px; }
-        #msg-input {
-            flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 25px; padding: 10px 15px; color: white; outline: none;
-        }
-
-        /* Admin/Ad Banner Placeholder */
+        /* --- Ads --- */
         #ad-banner {
-            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9); color: black; padding: 5px 15px;
-            border-radius: 5px; font-size: 0.8rem; z-index: 8; display: none;
+            position: fixed; bottom: 0; width: 100%; height: 50px; background: #333; color: white;
+            display: flex; align-items: center; justify-content: center; z-index: 100; font-size: 0.8rem;
         }
 
-        /* Floater Hearts */
-        .floater { position: absolute; bottom: 100px; right: 20px; font-size: 2rem; animation: floatUp 2s ease-out forwards; z-index: 20; pointer-events: none;}
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.5); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
-
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen">
-        <div class="logo-text">ExploreMeet</div>
-        <div class="tagline">Connect. Chat. Fall in Love.</div>
-        <button class="btn-google pulse" onclick="loginWithGoogle()">
-            <span class="material-icons-round">login</span> Login with Google
+    <div id="login-screen" class="screen active">
+        <div class="logo"><i class="fas fa-heart"></i> ExploreMeet</div>
+        <div class="tagline">Safe. Romantic. Girls Friendly.</div>
+        <button class="btn-google" onclick="signIn()">
+            <i class="fab fa-google"></i> Sign in with Google
         </button>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app-screen" class="hidden">
-        
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div id="vip-status" class="hidden vip-badge">VIP MEMBER</div>
-            <div style="flex:1"></div>
-            <div class="btn-circle btn-chat" style="width:35px; height:35px;" onclick="logout()">
-                <span class="material-icons-round" style="font-size:1.2rem">logout</span>
-            </div>
+    <div id="home-screen" class="screen">
+        <div class="profile-card" id="profile-card">
+            <img id="user-photo" class="profile-img" src="" alt="User">
+            <h2 id="user-name">Loading...</h2>
+            <span class="vip-badge"><i class="fas fa-crown"></i> VIP MEMBER</span>
+            <br>
+            <button class="btn-vip" id="buy-vip-btn" onclick="buyVIP()">Become VIP ₹99</button>
         </div>
 
-        <div id="ad-banner">✨ Upgrade to VIP to remove ads!</div>
+        <button class="btn-match" onclick="startMatching()">
+            <i class="fas fa-video"></i> Start Matching
+        </button>
 
-        <!-- Video Area -->
-        <div class="video-container">
-            <video id="remote-video" autoplay playsinline></video>
-            <video id="local-video" autoplay playsinline muted></video>
-            
-            <!-- Searching/Waiting Overlay -->
-            <div id="status-overlay">
-                <div class="loading-heart material-icons-round">favorite</div>
-                <p id="status-text" style="margin-top:10px; font-weight:300;">Ready to explore?</p>
-                <button onclick="startSearch()" style="margin-top:20px; background:white; color:var(--primary); border:none; padding:10px 30px; border-radius:25px; font-weight:bold;">START</button>
-            </div>
-        </div>
-
-        <!-- Controls & Chat -->
-        <div class="controls-area">
-            <div id="chat-messages"></div>
-            
-            <div id="input-area" class="hidden">
-                <input type="text" id="msg-input" placeholder="Type a romantic message..." onkeypress="handleEnter(event)">
-                <button class="btn-circle btn-like" style="width:40px; height:40px" onclick="sendMessage()">
-                    <span class="material-icons-round">send</span>
-                </button>
-            </div>
-
-            <div class="actions-row">
-                <button class="btn-circle btn-chat" onclick="toggleChatInput()">
-                    <span class="material-icons-round">chat_bubble</span>
-                </button>
-                
-                <button class="btn-circle btn-like pulse" onclick="sendHeart()">
-                    <span class="material-icons-round">favorite</span>
-                </button>
-
-                <button class="btn-circle btn-skip" onclick="nextPerson()">
-                    <span class="material-icons-round">skip_next</span>
-                </button>
-            </div>
+        <div style="margin-top:30px; opacity: 0.7; font-size: 0.9rem;">
+            <p><i class="fas fa-shield-alt"></i> Safe & Monitored</p>
+            <p><i class="fas fa-venus"></i> Girls Friendly</p>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <div id="video-screen" class="screen">
+        <div id="video-container"></div>
+        <div id="video-overlay">
+            <button class="control-btn" onclick="stopMatching()"><i class="fas fa-times"></i></button>
+            <button class="control-btn next" onclick="nextMatch()">Next <i class="fas fa-forward"></i></button>
+        </div>
+    </div>
+
+    <div id="ad-banner" style="display:none;">
+        Advertisement Space (Non-VIP)
+    </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION
-        // ==========================================
+        // --- CONFIGURATION ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
+            authDomain: "exploremeet---live.firebaseapp.com",
+            databaseURL: "https://exploremeet---live-default-rtdb.firebaseio.com",
+            projectId: "exploremeet---live",
+            appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
 
+        const ZEGO_APP_ID = 2013687880;
+        const ZEGO_SERVER_SECRET = "2576346c100ee42b720e88db26d01e53";
+        const RAZORPAY_KEY = "rzp_live_SBirtJRkaeGMgl";
+
+        // --- INIT FIREBASE ---
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // Admin Email
-        const ADMIN_EMAIL = "raghavsinghkushwaha02@gmail.com";
-
-        // Global State
         let currentUser = null;
-        let currentRoomId = null;
-        let isVIP = false;
-        let localStream = null;
-        let peerConnection = null;
-        let isSearching = false;
+        let zp = null; // Zego Instance
+        let currentRoomID = null;
 
-        const servers = {
-            iceServers: [
-                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
-            ]
-        };
-
-        // DOM Elements
-        const loginScreen = document.getElementById('login-screen');
-        const appScreen = document.getElementById('app-screen');
-        const statusOverlay = document.getElementById('status-overlay');
-        const statusText = document.getElementById('status-text');
-        const chatMsgs = document.getElementById('chat-messages');
-        const localVideo = document.getElementById('local-video');
-        const remoteVideo = document.getElementById('remote-video');
-
-        // ==========================================
-        // AUTHENTICATION
-        // ==========================================
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // Check Ban Status
-                const banRef = db.ref('bans/' + user.uid);
-                banRef.on('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        auth.signOut();
-                        alert("🚫 You have been banned by the Admin.");
-                        location.reload();
-                    }
-                });
-
-                currentUser = user;
-                loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
-                
-                // Check VIP & settings
-                checkUserProfile();
-                setupLocalCamera();
-            } else {
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-            }
-        });
-
-        function loginWithGoogle() {
+        // --- AUTH LOGIC ---
+        function signIn() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(e => alert(e.message));
         }
 
-        function logout() {
-            auth.signOut();
-            window.location.reload();
-        }
-
-        function checkUserProfile() {
-            // Check if VIP
-            db.ref(`users/${currentUser.uid}`).on('value', sn => {
-                const data = sn.val() || {};
-                isVIP = data.isVIP || false;
-                if(isVIP) document.getElementById('vip-status').classList.remove('hidden');
-                
-                // Ads Logic
-                db.ref('settings/showAds').once('value', s => {
-                    if(s.val() && !isVIP) {
-                        document.getElementById('ad-banner').style.display = 'block';
-                    } else {
-                        document.getElementById('ad-banner').style.display = 'none';
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Check Ban Status immediately
+                db.ref('users/' + user.uid).on('value', snapshot => {
+                    const userData = snapshot.val();
+                    
+                    if (userData && userData.isBanned) {
+                        alert("You are BANNED from ExploreMeet.");
+                        auth.signOut();
+                        return;
                     }
+
+                    // Save basic data if new
+                    if (!userData) {
+                        db.ref('users/' + user.uid).set({
+                            name: user.displayName,
+                            email: user.email,
+                            photoURL: user.photoURL,
+                            isBanned: false,
+                            isVIP: false
+                        });
+                    }
+
+                    currentUser = { ...user, ...userData };
+                    updateUI(currentUser);
+                    checkAds();
                 });
-            });
-            
-            // Create user entry
-            db.ref(`users/${currentUser.uid}`).update({
-                name: currentUser.displayName,
-                email: currentUser.email,
-                photo: currentUser.photoURL,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
-        }
-
-        // ==========================================
-        // WEBRTC & MATCHING LOGIC
-        // ==========================================
-        async function setupLocalCamera() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                localVideo.srcObject = localStream;
-            } catch (e) {
-                alert("Camera access denied. Please enable permissions.");
-            }
-        }
-
-        async function startSearch() {
-            if(!localStream) await setupLocalCamera();
-            
-            isSearching = true;
-            statusOverlay.classList.remove('hidden'); // keep background but hide button
-            statusOverlay.innerHTML = `<div class="loading-heart material-icons-round">favorite</div><p style="margin-top:10px">Finding a date...</p>`;
-            chatMsgs.innerHTML = '';
-            remoteVideo.srcObject = null;
-
-            // Simple Queue Logic
-            const queueRef = db.ref('queue');
-            
-            // Look for someone waiting
-            const snapshot = await queueRef.orderByKey().limitToFirst(1).once('value');
-            
-            if (snapshot.exists()) {
-                // Found someone!
-                const otherUserKey = Object.keys(snapshot.val())[0];
-                if(otherUserKey === currentUser.uid) return; // Don't match self
-
-                // Remove them from queue so no one else grabs them
-                await queueRef.child(otherUserKey).remove();
-
-                // Create a room
-                currentRoomId = [currentUser.uid, otherUserKey].sort().join('_');
-                
-                // Signal them to join
-                db.ref(`users/${otherUserKey}/match`).set({
-                    roomId: currentRoomId,
-                    initiator: currentUser.uid
-                });
-                
-                initializeCall(true); // I am the caller
             } else {
-                // No one waiting, add myself
-                const myRef = queueRef.child(currentUser.uid);
-                myRef.set({ timestamp: firebase.database.ServerValue.TIMESTAMP });
-                myRef.onDisconnect().remove();
+                showScreen('login-screen');
+                currentUser = null;
+            }
+        });
 
-                // Listen for a match assigned to me
-                db.ref(`users/${currentUser.uid}/match`).on('value', (sn) => {
-                    const matchData = sn.val();
-                    if (matchData) {
-                        currentRoomId = matchData.roomId;
-                        myRef.remove(); // Remove from queue
-                        db.ref(`users/${currentUser.uid}/match`).off(); // Stop listening
-                        initializeCall(false); // I am the callee
-                    }
-                });
+        function updateUI(user) {
+            showScreen('home-screen');
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-photo').src = user.photoURL;
+            
+            if (user.isVIP) {
+                document.getElementById('profile-card').classList.add('is-vip');
+                document.getElementById('buy-vip-btn').style.display = 'none';
+                document.getElementById('ad-banner').style.display = 'none';
+            } else {
+                document.getElementById('profile-card').classList.remove('is-vip');
+                document.getElementById('buy-vip-btn').style.display = 'inline-block';
             }
         }
 
-        function nextPerson() {
-            if(peerConnection) peerConnection.close();
-            if(currentRoomId) {
-                db.ref(`rooms/${currentRoomId}`).remove();
-                currentRoomId = null;
-            }
-            startSearch();
-        }
+        // --- MATCHING LOGIC (QUEUE SYSTEM) ---
+        async function startMatching() {
+            showScreen('video-screen');
+            
+            // Simple Matching Logic:
+            // 1. Look for a waiting room in 'matching_queue'
+            // 2. If found, join it and remove from queue.
+            // 3. If not, generate new RoomID, add to queue, and join.
 
-        // ==========================================
-        // WEBRTC CORE
-        // ==========================================
-        async function initializeCall(isCaller) {
-            statusOverlay.classList.add('hidden'); // Show video
-            peerConnection = new RTCPeerConnection(servers);
+            const queueRef = db.ref('matching_queue');
+            
+            // Use transaction to atomically find a match
+            queueRef.get().then((snapshot) => {
+                let foundMatch = false;
+                let roomIDToJoin = null;
 
-            // Add local tracks
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-            // Handle remote stream
-            peerConnection.ontrack = event => {
-                remoteVideo.srcObject = event.streams[0];
-            };
-
-            // ICE Candidates
-            const roomRef = db.ref(`rooms/${currentRoomId}`);
-            const myCandidates = roomRef.child(isCaller ? 'callerCandidates' : 'calleeCandidates');
-            const theirCandidates = roomRef.child(isCaller ? 'calleeCandidates' : 'callerCandidates');
-
-            peerConnection.onicecandidate = event => {
-                if (event.candidate) myCandidates.push(event.candidate.toJSON());
-            };
-
-            // Signalling
-            if (isCaller) {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                await roomRef.child('offer').set({
-                    sdp: offer.sdp,
-                    type: offer.type
-                });
-            }
-
-            // Listen for signaling data
-            roomRef.on('value', async snapshot => {
-                const data = snapshot.val();
-                if (!peerConnection || !data) return;
-
-                if (!isCaller && data.offer && !peerConnection.currentRemoteDescription) {
-                    const offer = new RTCSessionDescription(data.offer);
-                    await peerConnection.setRemoteDescription(offer);
-                    const answer = await peerConnection.createAnswer();
-                    await peerConnection.setLocalDescription(answer);
-                    await roomRef.child('answer').set({
-                        sdp: answer.sdp,
-                        type: answer.type
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        // Don't match with self
+                        if (child.val().uid !== currentUser.uid && !foundMatch) {
+                            roomIDToJoin = child.val().roomId;
+                            foundMatch = true;
+                            // Remove from queue since we are joining
+                            child.ref.remove();
+                        }
                     });
                 }
 
-                if (isCaller && data.answer && !peerConnection.currentRemoteDescription) {
-                    const answer = new RTCSessionDescription(data.answer);
-                    await peerConnection.setRemoteDescription(answer);
+                if (foundMatch) {
+                    console.log("Match found! Joining room: " + roomIDToJoin);
+                    joinZegoRoom(roomIDToJoin);
+                } else {
+                    // Create new room
+                    roomIDToJoin = "room_" + Math.floor(Math.random() * 1000000);
+                    console.log("No match. Created room: " + roomIDToJoin);
+                    
+                    // Add self to queue
+                    const myEntry = queueRef.push();
+                    myEntry.set({
+                        uid: currentUser.uid,
+                        roomId: roomIDToJoin,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    // Auto-remove from queue if user disconnects
+                    myEntry.onDisconnect().remove();
+                    
+                    // Keep track of my queue entry to remove it if I find a match inside Zego (optional complex logic omitted for simplicity)
+                    joinZegoRoom(roomIDToJoin);
                 }
             });
+        }
 
-            // Listen for ICE candidates
-            theirCandidates.on('child_added', snapshot => {
-                const candidate = new RTCIceCandidate(snapshot.val());
-                peerConnection.addIceCandidate(candidate);
-            });
+        function joinZegoRoom(roomID) {
+            currentRoomID = roomID;
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+                ZEGO_APP_ID, 
+                ZEGO_SERVER_SECRET, 
+                roomID, 
+                currentUser.uid, 
+                currentUser.displayName
+            );
 
-            // Listen for Chat
-            roomRef.child('chat').on('child_added', sn => {
-                const msg = sn.val();
-                addMessageToUI(msg.text, msg.sender === currentUser.uid);
-            });
-
-            // Listen for End/Next
-            roomRef.on('child_removed', () => {
-                 // If the room is deleted or partner disconnects
-                 // In a real app, show "Partner left" then restart
+            zp = ZegoUIKitPrebuilt.create(kitToken);
+            
+            zp.joinRoom({
+                container: document.querySelector("#video-container"),
+                scenario: {
+                    mode: ZegoUIKitPrebuilt.OneONoneCall,
+                },
+                sharedLinks: [],
+                showPreJoinView: false,
+                showScreenSharingButton: false,
+                showUserList: false,
+                turnOnMicrophoneWhenJoining: true,
+                turnOnCameraWhenJoining: true,
+                showMyCameraToggleButton: true,
+                showMyMicrophoneToggleButton: true,
+                showAudioVideoSettingsButton: false,
+                onLeaveRoom: () => {
+                    stopMatching();
+                }
             });
         }
 
-        // ==========================================
-        // CHAT & INTERACTIONS
-        // ==========================================
-        function toggleChatInput() {
-            document.getElementById('input-area').classList.toggle('hidden');
+        function nextMatch() {
+            if (zp) zp.destroy();
+            // Clear current room context
+            currentRoomID = null;
+            startMatching(); // Restart logic
         }
 
-        function handleEnter(e) {
-            if(e.key === 'Enter') sendMessage();
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if(!text || !currentRoomId) return;
-
-            db.ref(`rooms/${currentRoomId}/chat`).push({
-                sender: currentUser.uid,
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+        function stopMatching() {
+            if (zp) zp.destroy();
+            // Remove myself from queue if I was waiting
+            db.ref('matching_queue').orderByChild('uid').equalTo(currentUser.uid).once('value', snapshot => {
+                snapshot.forEach(child => child.ref.remove());
             });
-            input.value = '';
+            showScreen('home-screen');
         }
 
-        function addMessageToUI(text, isMe) {
-            const div = document.createElement('div');
-            div.className = `msg ${isMe ? 'me' : 'them'} fade-in`;
-            div.innerText = text;
-            chatMsgs.appendChild(div);
-            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        // --- RAZORPAY VIP LOGIC ---
+        function buyVIP() {
+            const options = {
+                "key": RAZORPAY_KEY, 
+                "amount": "9900", // 99 INR in paise
+                "currency": "INR",
+                "name": "ExploreMeet VIP",
+                "description": "Unlock VIP Features",
+                "image": "https://cdn-icons-png.flaticon.com/512/6941/6941697.png",
+                "handler": function (response) {
+                    // Payment Success
+                    db.ref('payments/' + response.razorpay_payment_id).set({
+                        uid: currentUser.uid,
+                        amount: 99,
+                        status: "success",
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    // Grant VIP
+                    db.ref('users/' + currentUser.uid).update({
+                        isVIP: true
+                    }).then(() => {
+                        alert("Welcome to VIP Club! Enjoy ad-free experience.");
+                        location.reload();
+                    });
+                },
+                "prefill": {
+                    "name": currentUser.displayName,
+                    "email": currentUser.email
+                },
+                "theme": { "color": "#ff4081" }
+            };
+            const rzp1 = new Razorpay(options);
+            rzp1.open();
         }
 
-        function sendHeart() {
-            if(!currentRoomId) return;
-            // Visual effect
-            const heart = document.createElement('div');
-            heart.innerHTML = '❤️';
-            heart.className = 'floater';
-            document.body.appendChild(heart);
-            setTimeout(() => heart.remove(), 2000);
+        // --- ADS LOGIC ---
+        function checkAds() {
+            if(currentUser && currentUser.isVIP) return; // VIPs don't see ads
 
-            // Send system message
-            db.ref(`rooms/${currentRoomId}/chat`).push({
-                sender: currentUser.uid,
-                text: "❤️ Sent a heart!",
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+            db.ref('ads').on('value', snap => {
+                const ads = snap.val();
+                const banner = document.getElementById('ad-banner');
+                if (ads && ads.enabled) {
+                    banner.style.display = 'flex';
+                    banner.innerHTML = ads.bannerHtml || '<a href="#">🔥 Meet Hot Singles Nearby! (Ad)</a>';
+                } else {
+                    banner.style.display = 'none';
+                }
             });
+        }
+
+        // --- HELPER ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
     </script>
 </body>
