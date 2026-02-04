@@ -3,142 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ExploreMeet Chat</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="referrer" content="no-referrer">
+    <title>ExploreMeet Live | Romantic Video Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
-
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
     <style>
-        :root {
-            --primary: #ff4081; /* Pink */
-            --dark: #12050f;    /* Deep Romantic Dark */
-            --card: #2a0e1e;
-            --text: #ffffff;
-            --gradient: linear-gradient(135deg, #ff4081, #c51162);
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--dark);
-            color: var(--text);
-            overflow: hidden; /* Prevent scroll on video */
-            height: 100vh;
-        }
-
-        /* --- Screens --- */
-        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; }
-        .active { display: flex; }
-
-        /* --- Login Screen --- */
-        #login-screen {
-            background: radial-gradient(circle at center, #3d0026 0%, #000000 100%);
-            text-align: center;
-        }
-        .logo { font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; font-weight: 700; text-shadow: 0 0 10px rgba(255,64,129,0.5); }
-        .tagline { margin-bottom: 40px; color: #ccc; }
-        .btn-google {
-            background: white; color: #333; border: none; padding: 12px 24px;
-            border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
-        }
-
-        /* --- Home Screen --- */
-        #home-screen { padding: 20px; box-sizing: border-box; justify-content: flex-start; padding-top: 60px; }
-        .profile-card {
-            background: var(--card); padding: 20px; border-radius: 20px; width: 90%; max-width: 400px;
-            text-align: center; margin-bottom: 30px; border: 1px solid #4a1c36;
-        }
-        .profile-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; }
-        .vip-badge { background: gold; color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; display: none; }
-        .is-vip .vip-badge { display: inline-block; }
+        :root { --primary: #ff0099; --bg: #0f0c29; --card: #1a1a40; --text: #ffffff; }
+        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        .hidden { display: none !important; }
         
-        .btn-match {
-            background: var(--gradient); color: white; border: none; padding: 15px 40px;
-            border-radius: 50px; font-size: 1.2rem; font-weight: 600; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255,64,129,0.4); animation: pulse 2s infinite;
-        }
+        /* Romantic Home UI */
+        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; text-align: center; }
+        .avatar-container { position: relative; width: 150px; height: 150px; margin-bottom: 30px; }
+        .avatar-container img { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; }
+        .pulse { position: absolute; inset: -10px; border: 2px solid var(--primary); border-radius: 50%; animation: pulse-out 2s infinite; }
+        @keyframes pulse-out { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        .btn-neon { background: var(--primary); color: white; border: none; padding: 18px 60px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; cursor: pointer; box-shadow: 0 0 20px var(--primary); transition: 0.3s; }
         
-        .btn-vip {
-            margin-top: 20px; background: transparent; border: 2px solid gold; color: gold;
-            padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer;
-        }
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(26, 26, 64, 0.9); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { color: #888; font-size: 1.5rem; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
 
-        /* --- Video Screen --- */
-        #video-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        #video-overlay {
-            position: absolute; bottom: 20px; left: 0; width: 100%; z-index: 10;
-            display: flex; justify-content: center; gap: 20px; pointer-events: none;
-        }
-        .control-btn {
-            pointer-events: auto; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
-            color: white; padding: 15px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
-            backdrop-filter: blur(5px); transition: transform 0.2s;
-        }
-        .control-btn.next { background: var(--primary); border: none; }
-        .control-btn:active { transform: scale(0.9); }
-
-        /* --- Ads --- */
-        #ad-banner {
-            position: fixed; bottom: 0; width: 100%; height: 50px; background: #333; color: white;
-            display: flex; align-items: center; justify-content: center; z-index: 100; font-size: 0.8rem;
-        }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        /* Searching Screen */
+        #searching-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #video-mount { position: fixed; inset: 0; z-index: 3000; background: #000; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="screen active">
-        <div class="logo"><i class="fas fa-heart"></i> ExploreMeet</div>
-        <div class="tagline">Safe. Romantic. Girls Friendly.</div>
-        <button class="btn-google" onclick="signIn()">
-            <i class="fab fa-google"></i> Sign in with Google
-        </button>
+    <div id="auth-screen" style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <h1 style="color:var(--primary); font-size:3rem;">ExploreMeet</h1>
+        <button class="btn-neon" onclick="login()"><i class="fab fa-google"></i> Login to Dating</button>
     </div>
 
-    <div id="home-screen" class="screen">
-        <div class="profile-card" id="profile-card">
-            <img id="user-photo" class="profile-img" src="" alt="User">
-            <h2 id="user-name">Loading...</h2>
-            <span class="vip-badge"><i class="fas fa-crown"></i> VIP MEMBER</span>
-            <br>
-            <button class="btn-vip" id="buy-vip-btn" onclick="buyVIP()">Become VIP ₹99</button>
+    <div id="main-app" class="hidden">
+        <div id="home-screen">
+            <div class="avatar-container">
+                <div class="pulse"></div>
+                <img id="user-photo" src="" referrerpolicy="no-referrer">
+            </div>
+            <h1>Find Your Match</h1>
+            <p style="color:#aaa; margin-bottom:40px;">Ready for a romantic encounter?</p>
+            <button class="btn-neon" onclick="startMatching()">START CHAT</button>
         </div>
 
-        <button class="btn-match" onclick="startMatching()">
-            <i class="fas fa-video"></i> Start Matching
-        </button>
-
-        <div style="margin-top:30px; opacity: 0.7; font-size: 0.9rem;">
-            <p><i class="fas fa-shield-alt"></i> Safe & Monitored</p>
-            <p><i class="fas fa-venus"></i> Girls Friendly</p>
-        </div>
+        <nav class="bottom-nav">
+            <div class="nav-item active"><i class="fas fa-heart"></i></div>
+            <div class="nav-item"><i class="fas fa-comment"></i></div>
+            <div class="nav-item" onclick="location.reload()"><i class="fas fa-user"></i></div>
+        </nav>
     </div>
 
-    <div id="video-screen" class="screen">
-        <div id="video-container"></div>
-        <div id="video-overlay">
-            <button class="control-btn" onclick="stopMatching()"><i class="fas fa-times"></i></button>
-            <button class="control-btn next" onclick="nextMatch()">Next <i class="fas fa-forward"></i></button>
-        </div>
+    <div id="searching-screen" class="hidden">
+        <div class="avatar-container"><div class="pulse"></div><img id="search-photo" src=""></div>
+        <h3>Searching for someone special...</h3>
+        <button class="btn-neon" style="background:#444; box-shadow:none;" onclick="cancelSearch()">Cancel</button>
     </div>
 
-    <div id="ad-banner" style="display:none;">
-        Advertisement Space (Non-VIP)
-    </div>
+    <div id="video-mount" class="hidden"></div>
 
-    <script>
-        // --- CONFIGURATION ---
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, update, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
             authDomain: "exploremeet---live.firebaseapp.com",
@@ -147,231 +77,84 @@
             appId: "1:169038218786:web:4282137dbeb92000dbac7b"
         };
 
-        const ZEGO_APP_ID = 2013687880;
-        const ZEGO_SERVER_SECRET = "2576346c100ee42b720e88db26d01e53";
-        const RAZORPAY_KEY = "rzp_live_SBirtJRkaeGMgl";
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const zpID = 2013687880, zpSecret = "2576346c100ee42b720e88db26d01e53";
 
-        // --- INIT FIREBASE ---
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        let currentUser = null, zp = null;
 
-        let currentUser = null;
-        let zp = null; // Zego Instance
-        let currentRoomID = null;
+        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
 
-        // --- AUTH LOGIC ---
-        function signIn() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => alert(e.message));
-        }
-
-        auth.onAuthStateChanged(user => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Check Ban Status immediately
-                db.ref('users/' + user.uid).on('value', snapshot => {
-                    const userData = snapshot.val();
-                    
-                    if (userData && userData.isBanned) {
-                        alert("You are BANNED from ExploreMeet.");
-                        auth.signOut();
+                currentUser = user;
+                const userRef = ref(db, `users/${user.uid}`);
+                onValue(userRef, (snap) => {
+                    const data = snap.val();
+                    if (data && data.isBanned) {
+                        alert("Your account is banned.");
+                        signOut(auth).then(() => location.reload());
                         return;
                     }
-
-                    // Save basic data if new
-                    if (!userData) {
-                        db.ref('users/' + user.uid).set({
-                            name: user.displayName,
-                            email: user.email,
-                            photoURL: user.photoURL,
-                            isBanned: false,
-                            isVIP: false
-                        });
-                    }
-
-                    currentUser = { ...user, ...userData };
-                    updateUI(currentUser);
-                    checkAds();
+                    if (!data) set(userRef, { name: user.displayName, email: user.email, photoURL: user.photoURL, vip: "Free", isBanned: false });
+                    
+                    document.getElementById('user-photo').src = user.photoURL;
+                    document.getElementById('search-photo').src = user.photoURL;
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('main-app').classList.remove('hidden');
                 });
-            } else {
-                showScreen('login-screen');
-                currentUser = null;
+                
+                // Monitor current room for incoming calls
+                onValue(ref(db, `users/${user.uid}/currentRoom`), (snap) => {
+                    if (snap.val()) startVideoCall(snap.val());
+                });
             }
         });
 
-        function updateUI(user) {
-            showScreen('home-screen');
-            document.getElementById('user-name').innerText = user.displayName;
-            document.getElementById('user-photo').src = user.photoURL;
+        window.startMatching = async () => {
+            document.getElementById('searching-screen').classList.remove('hidden');
+            await set(ref(db, `waitingUsers/${currentUser.uid}`), { name: currentUser.displayName, ts: Date.now() });
             
-            if (user.isVIP) {
-                document.getElementById('profile-card').classList.add('is-vip');
-                document.getElementById('buy-vip-btn').style.display = 'none';
-                document.getElementById('ad-banner').style.display = 'none';
-            } else {
-                document.getElementById('profile-card').classList.remove('is-vip');
-                document.getElementById('buy-vip-btn').style.display = 'inline-block';
+            const waitRef = ref(db, 'waitingUsers');
+            const snap = await get(waitRef);
+            const pool = snap.val();
+            const others = Object.keys(pool).filter(id => id !== currentUser.uid);
+
+            if (others.length > 0) {
+                const partnerId = others[0];
+                const roomId = "room_" + Date.now();
+                await set(ref(db, `rooms/${roomId}`), { u1: currentUser.uid, u2: partnerId });
+                await update(ref(db, `users/${currentUser.uid}`), { currentRoom: roomId });
+                await update(ref(db, `users/${partnerId}`), { currentRoom: roomId });
+                remove(ref(db, `waitingUsers/${currentUser.uid}`));
+                remove(ref(db, `waitingUsers/${partnerId}`));
             }
-        }
+        };
 
-        // --- MATCHING LOGIC (QUEUE SYSTEM) ---
-        async function startMatching() {
-            showScreen('video-screen');
-            
-            // Simple Matching Logic:
-            // 1. Look for a waiting room in 'matching_queue'
-            // 2. If found, join it and remove from queue.
-            // 3. If not, generate new RoomID, add to queue, and join.
-
-            const queueRef = db.ref('matching_queue');
-            
-            // Use transaction to atomically find a match
-            queueRef.get().then((snapshot) => {
-                let foundMatch = false;
-                let roomIDToJoin = null;
-
-                if (snapshot.exists()) {
-                    snapshot.forEach(child => {
-                        // Don't match with self
-                        if (child.val().uid !== currentUser.uid && !foundMatch) {
-                            roomIDToJoin = child.val().roomId;
-                            foundMatch = true;
-                            // Remove from queue since we are joining
-                            child.ref.remove();
-                        }
-                    });
-                }
-
-                if (foundMatch) {
-                    console.log("Match found! Joining room: " + roomIDToJoin);
-                    joinZegoRoom(roomIDToJoin);
-                } else {
-                    // Create new room
-                    roomIDToJoin = "room_" + Math.floor(Math.random() * 1000000);
-                    console.log("No match. Created room: " + roomIDToJoin);
-                    
-                    // Add self to queue
-                    const myEntry = queueRef.push();
-                    myEntry.set({
-                        uid: currentUser.uid,
-                        roomId: roomIDToJoin,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-
-                    // Auto-remove from queue if user disconnects
-                    myEntry.onDisconnect().remove();
-                    
-                    // Keep track of my queue entry to remove it if I find a match inside Zego (optional complex logic omitted for simplicity)
-                    joinZegoRoom(roomIDToJoin);
-                }
-            });
-        }
-
-        function joinZegoRoom(roomID) {
-            currentRoomID = roomID;
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-                ZEGO_APP_ID, 
-                ZEGO_SERVER_SECRET, 
-                roomID, 
-                currentUser.uid, 
-                currentUser.displayName
-            );
-
+        function startVideoCall(roomId) {
+            document.getElementById('searching-screen').classList.add('hidden');
+            document.getElementById('video-mount').classList.remove('hidden');
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(zpID, zpSecret, roomId, currentUser.uid, currentUser.displayName);
             zp = ZegoUIKitPrebuilt.create(kitToken);
-            
             zp.joinRoom({
-                container: document.querySelector("#video-container"),
-                scenario: {
-                    mode: ZegoUIKitPrebuilt.OneONoneCall,
-                },
-                sharedLinks: [],
+                container: document.getElementById('video-mount'),
+                scenario: { mode: ZegoUIKitPrebuilt.OneONoneCall },
                 showPreJoinView: false,
-                showScreenSharingButton: false,
-                showUserList: false,
-                turnOnMicrophoneWhenJoining: true,
-                turnOnCameraWhenJoining: true,
-                showMyCameraToggleButton: true,
-                showMyMicrophoneToggleButton: true,
-                showAudioVideoSettingsButton: false,
-                onLeaveRoom: () => {
-                    stopMatching();
-                }
+                onLeaveRoom: () => endSession()
             });
         }
 
-        function nextMatch() {
+        function endSession() {
             if (zp) zp.destroy();
-            // Clear current room context
-            currentRoomID = null;
-            startMatching(); // Restart logic
+            update(ref(db, `users/${currentUser.uid}`), { currentRoom: null });
+            document.getElementById('video-mount').classList.add('hidden');
         }
 
-        function stopMatching() {
-            if (zp) zp.destroy();
-            // Remove myself from queue if I was waiting
-            db.ref('matching_queue').orderByChild('uid').equalTo(currentUser.uid).once('value', snapshot => {
-                snapshot.forEach(child => child.ref.remove());
-            });
-            showScreen('home-screen');
-        }
-
-        // --- RAZORPAY VIP LOGIC ---
-        function buyVIP() {
-            const options = {
-                "key": RAZORPAY_KEY, 
-                "amount": "9900", // 99 INR in paise
-                "currency": "INR",
-                "name": "ExploreMeet VIP",
-                "description": "Unlock VIP Features",
-                "image": "https://cdn-icons-png.flaticon.com/512/6941/6941697.png",
-                "handler": function (response) {
-                    // Payment Success
-                    db.ref('payments/' + response.razorpay_payment_id).set({
-                        uid: currentUser.uid,
-                        amount: 99,
-                        status: "success",
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-
-                    // Grant VIP
-                    db.ref('users/' + currentUser.uid).update({
-                        isVIP: true
-                    }).then(() => {
-                        alert("Welcome to VIP Club! Enjoy ad-free experience.");
-                        location.reload();
-                    });
-                },
-                "prefill": {
-                    "name": currentUser.displayName,
-                    "email": currentUser.email
-                },
-                "theme": { "color": "#ff4081" }
-            };
-            const rzp1 = new Razorpay(options);
-            rzp1.open();
-        }
-
-        // --- ADS LOGIC ---
-        function checkAds() {
-            if(currentUser && currentUser.isVIP) return; // VIPs don't see ads
-
-            db.ref('ads').on('value', snap => {
-                const ads = snap.val();
-                const banner = document.getElementById('ad-banner');
-                if (ads && ads.enabled) {
-                    banner.style.display = 'flex';
-                    banner.innerHTML = ads.bannerHtml || '<a href="#">🔥 Meet Hot Singles Nearby! (Ad)</a>';
-                } else {
-                    banner.style.display = 'none';
-                }
-            });
-        }
-
-        // --- HELPER ---
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
+        window.cancelSearch = () => {
+            remove(ref(db, `waitingUsers/${currentUser.uid}`));
+            document.getElementById('searching-screen').classList.add('hidden');
+        };
     </script>
 </body>
 </html>
