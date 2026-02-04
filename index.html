@@ -2,396 +2,509 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExploreMeet Chat | Global Video</title>
-    <!-- ZegoCloud SDK -->
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ExploreMeet Chat</title>
     
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
     <style>
         :root {
-            --bg: #0f0c29;
-            --surface: #1e1b3a;
-            --accent: #ff0099;
+            --primary: #ff4b7d; /* Romantic Pink */
+            --primary-dark: #d6336c;
+            --bg: #121212;
+            --surface: #1e1e2c;
             --text: #ffffff;
-            --text-muted: #b0b0b0;
+            --glass: rgba(30, 30, 44, 0.85);
         }
 
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            overflow: hidden; /* Prevent scroll */
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
 
-        /* Login Screen */
+        /* --- Utility & Animations --- */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 75, 125, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 75, 125, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 75, 125, 0); } }
+
+        /* --- Login Screen --- */
         #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
+            height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, #121212 0%, #2a0a14 100%);
+            text-align: center; padding: 20px;
+        }
+        .logo-text { font-size: 2.5rem; font-weight: 600; background: linear-gradient(to right, #ff9a9e, #ff4b7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .tagline { font-size: 1rem; opacity: 0.7; margin-bottom: 40px; }
+        
+        .btn-google {
+            background: white; color: #333; padding: 12px 24px; border-radius: 50px; border: none; font-weight: 600;
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 1rem;
         }
 
-        .btn-neon {
-            background: transparent;
-            border: 2px solid var(--accent);
-            color: var(--accent);
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-            box-shadow: 0 0 10px var(--accent);
-        }
+        /* --- Main App Area --- */
+        #app-screen { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; }
 
-        .btn-neon:hover {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 0 30px var(--accent);
+        /* Top Bar */
+        .top-bar {
+            position: absolute; top: 0; width: 100%; padding: 15px; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
-
-        /* App Layout */
-        #app-container {
-            display: none; /* Hidden until logged in */
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            height: 60px;
-            background: var(--surface);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid #333;
-        }
-
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar-container {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent);
-        }
-
         .vip-badge {
-            background: gold;
-            color: black;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: none; /* Toggled by JS */
+            background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; padding: 4px 12px;
+            border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 0 10px #ffd700;
         }
 
-        /* Video Area */
-        #video-wrapper {
-            flex: 1;
-            position: relative;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* Video Container */
+        .video-container { flex: 1; position: relative; background: #000; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Remote Video (Full Screen) */
+        #remote-video { width: 100%; height: 100%; }
+        
+        /* Local Video (PiP) */
+        #local-video {
+            position: absolute; top: 70px; right: 15px; width: 100px; height: 140px;
+            border-radius: 12px; border: 2px solid var(--primary); object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 5;
         }
 
-        #video-placeholder {
-            width: 100%;
-            height: 100%;
+        /* State Overlay (Searching/Waiting) */
+        #status-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 4;
+        }
+        .loading-heart { font-size: 4rem; color: var(--primary); animation: beat 1s infinite; }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+        /* Controls Bottom */
+        .controls-area {
+            position: absolute; bottom: 0; width: 100%; padding: 15px 20px 30px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 10; display: flex; flex-direction: column; gap: 10px;
         }
 
-        /* Controls */
-        #controls {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 100;
+        /* Chat Messages Area */
+        #chat-messages {
+            height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+            mask-image: linear-gradient(to bottom, transparent, black 20%);
+            margin-bottom: 10px;
+        }
+        .msg { padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; max-width: 80%; width: fit-content; }
+        .msg.me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.them { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); align-self: flex-start; border-bottom-left-radius: 2px; }
+
+        /* Action Buttons */
+        .actions-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        
+        .btn-circle {
+            width: 50px; height: 50px; border-radius: 50%; border: none;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; color: white; cursor: pointer; transition: transform 0.2s;
+        }
+        .btn-circle:active { transform: scale(0.9); }
+        
+        .btn-chat { background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); }
+        .btn-skip { background: #333; color: #fff; }
+        .btn-like { background: var(--primary); box-shadow: 0 0 15px rgba(255, 75, 125, 0.6); }
+
+        /* Chat Input */
+        #input-area { display: flex; gap: 10px; margin-top: 10px; }
+        #msg-input {
+            flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px; padding: 10px 15px; color: white; outline: none;
         }
 
-        .control-btn {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .control-btn.next {
-            background: var(--accent);
-        }
-
-        .control-btn:hover {
-            transform: scale(1.05);
-        }
-
-        /* Ads */
+        /* Admin/Ad Banner Placeholder */
         #ad-banner {
-            height: 60px;
-            background: #222;
-            display: none; /* Toggled by JS */
-            justify-content: center;
-            align-items: center;
-            color: #555;
-            border-top: 1px solid var(--accent);
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9); color: black; padding: 5px 15px;
+            border-radius: 5px; font-size: 0.8rem; z-index: 8; display: none;
         }
 
-        /* Hidden File Input */
-        #file-input { display: none; }
+        /* Floater Hearts */
+        .floater { position: absolute; bottom: 100px; right: 20px; font-size: 2rem; animation: floatUp 2s ease-out forwards; z-index: 20; pointer-events: none;}
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.5); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
+
     </style>
 </head>
 <body>
 
-    <!-- Login View -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen">
-        <h1 style="color: white; margin-bottom: 2rem;">ExploreMeet <span style="color:var(--accent)">Chat</span></h1>
-        <button id="login-btn" class="btn-neon">Login with Google</button>
+        <div class="logo-text">ExploreMeet</div>
+        <div class="tagline">Connect. Chat. Fall in Love.</div>
+        <button class="btn-google pulse" onclick="loginWithGoogle()">
+            <span class="material-icons-round">login</span> Login with Google
+        </button>
     </div>
 
-    <!-- Main App View -->
-    <div id="app-container" style="display:none;">
-        <header>
-            <div class="logo">ExploreMeet</div>
-            <div class="user-area">
-                <span class="vip-badge" id="vip-badge">VIP</span>
-                <div class="avatar-container" onclick="document.getElementById('file-input').click()">
-                    <img id="user-avatar" class="avatar" src="" alt="Profile" referrerpolicy="no-referrer">
-                    <div style="font-size:10px; position:absolute; bottom:-15px; width:100%; text-align:center; color:#ccc;">Edit</div>
-                </div>
-                <input type="file" id="file-input" accept="image/*">
-                <button id="logout-btn" style="background:none; border:none; color:white; cursor:pointer;">
-                    <i class="fas fa-sign-out-alt"></i>
+    <!-- MAIN APP -->
+    <div id="app-screen" class="hidden">
+        
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div id="vip-status" class="hidden vip-badge">VIP MEMBER</div>
+            <div style="flex:1"></div>
+            <div class="btn-circle btn-chat" style="width:35px; height:35px;" onclick="logout()">
+                <span class="material-icons-round" style="font-size:1.2rem">logout</span>
+            </div>
+        </div>
+
+        <div id="ad-banner">✨ Upgrade to VIP to remove ads!</div>
+
+        <!-- Video Area -->
+        <div class="video-container">
+            <video id="remote-video" autoplay playsinline></video>
+            <video id="local-video" autoplay playsinline muted></video>
+            
+            <!-- Searching/Waiting Overlay -->
+            <div id="status-overlay">
+                <div class="loading-heart material-icons-round">favorite</div>
+                <p id="status-text" style="margin-top:10px; font-weight:300;">Ready to explore?</p>
+                <button onclick="startSearch()" style="margin-top:20px; background:white; color:var(--primary); border:none; padding:10px 30px; border-radius:25px; font-weight:bold;">START</button>
+            </div>
+        </div>
+
+        <!-- Controls & Chat -->
+        <div class="controls-area">
+            <div id="chat-messages"></div>
+            
+            <div id="input-area" class="hidden">
+                <input type="text" id="msg-input" placeholder="Type a romantic message..." onkeypress="handleEnter(event)">
+                <button class="btn-circle btn-like" style="width:40px; height:40px" onclick="sendMessage()">
+                    <span class="material-icons-round">send</span>
                 </button>
             </div>
-        </header>
 
-        <div id="video-wrapper">
-            <div id="video-placeholder"></div>
-            <div id="controls">
-                <button class="control-btn next" id="next-btn">Next Match <i class="fas fa-random"></i></button>
+            <div class="actions-row">
+                <button class="btn-circle btn-chat" onclick="toggleChatInput()">
+                    <span class="material-icons-round">chat_bubble</span>
+                </button>
+                
+                <button class="btn-circle btn-like pulse" onclick="sendHeart()">
+                    <span class="material-icons-round">favorite</span>
+                </button>
+
+                <button class="btn-circle btn-skip" onclick="nextPerson()">
+                    <span class="material-icons-round">skip_next</span>
+                </button>
             </div>
-        </div>
-
-        <div id="ad-banner">
-            <!-- Ad Content Placeholder -->
-            <span id="ad-text">ADVERTISEMENT SPACE</span>
         </div>
     </div>
 
-    <script type="module">
-        // --- 1. CONFIGURATION ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
+    <script>
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyDB6H5YFrr7gD7YmRsinknALrp5_RL3dLA",
-            authDomain: "exploremeet---live.firebaseapp.com",
-            databaseURL: "https://exploremeet---live-default-rtdb.firebaseio.com",
-            projectId: "exploremeet---live",
-            appId: "1:169038218786:web:4282137dbeb92000dbac7b"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        
-        // Zego Config
-        const appID = 2013687880;
-        const serverSecret = "2576346c100ee42b720e88db26d01e53";
-        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // Admin Email
+        const ADMIN_EMAIL = "raghavsinghkushwaha02@gmail.com";
+
+        // Global State
         let currentUser = null;
-        let zegoInstance = null;
-        let isAdEnabled = false;
+        let currentRoomId = null;
+        let isVIP = false;
+        let localStream = null;
+        let peerConnection = null;
+        let isSearching = false;
 
-        // --- 2. AUTH & USER MANAGEMENT ---
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
+        const servers = {
+            iceServers: [
+                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+            ]
+        };
+
+        // DOM Elements
         const loginScreen = document.getElementById('login-screen');
-        const appContainer = document.getElementById('app-container');
-        const avatarImg = document.getElementById('user-avatar');
-        const vipBadge = document.getElementById('vip-badge');
-        const fileInput = document.getElementById('file-input');
-        const adBanner = document.getElementById('ad-banner');
+        const appScreen = document.getElementById('app-screen');
+        const statusOverlay = document.getElementById('status-overlay');
+        const statusText = document.getElementById('status-text');
+        const chatMsgs = document.getElementById('chat-messages');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
 
-        loginBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch(console.error);
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            if(zegoInstance) zegoInstance.destroy();
-            signOut(auth);
-        });
-
-        onAuthStateChanged(auth, (user) => {
+        // ==========================================
+        // AUTHENTICATION
+        // ==========================================
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
+                // Check Ban Status
+                const banRef = db.ref('bans/' + user.uid);
+                banRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        auth.signOut();
+                        alert("🚫 You have been banned by the Admin.");
+                        location.reload();
+                    }
+                });
+
                 currentUser = user;
-                loginScreen.style.display = 'none';
-                appContainer.style.display = 'flex'; // Fix display type
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
                 
-                // Initialize User Data in DB
-                const userRef = ref(db, 'users/' + user.uid);
+                // Check VIP & settings
+                checkUserProfile();
+                setupLocalCamera();
+            } else {
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+            }
+        });
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => alert(e.message));
+        }
+
+        function logout() {
+            auth.signOut();
+            window.location.reload();
+        }
+
+        function checkUserProfile() {
+            // Check if VIP
+            db.ref(`users/${currentUser.uid}`).on('value', sn => {
+                const data = sn.val() || {};
+                isVIP = data.isVIP || false;
+                if(isVIP) document.getElementById('vip-status').classList.remove('hidden');
                 
-                // Realtime Listener for User Data (Ban, Photo, Sub)
-                onValue(userRef, (snapshot) => {
-                    const data = snapshot.val() || {};
-                    
-                    // 1. Check Ban Status
-                    if (data.isBanned === true) {
-                        alert("You have been banned by the administrator.");
-                        signOut(auth);
-                        window.location.reload();
-                        return;
-                    }
-
-                    // 2. Sync Basic Info if missing
-                    if(!data.email) {
-                        update(userRef, {
-                            displayName: user.displayName,
-                            email: user.email,
-                            photoURL: user.photoURL,
-                            subscription: data.subscription || "Free",
-                            isBanned: false
-                        });
-                    }
-
-                    // 3. Update Avatar Priority
-                    if (data.customPhoto) {
-                        avatarImg.src = data.customPhoto;
-                    } else if (user.photoURL) {
-                        avatarImg.src = user.photoURL;
+                // Ads Logic
+                db.ref('settings/showAds').once('value', s => {
+                    if(s.val() && !isVIP) {
+                        document.getElementById('ad-banner').style.display = 'block';
                     } else {
-                        avatarImg.src = `https://ui-avatars.com/api/?name=${user.displayName}`;
+                        document.getElementById('ad-banner').style.display = 'none';
                     }
-
-                    // 4. Update VIP UI & Ad Logic
-                    const isVip = data.subscription === 'VIP';
-                    vipBadge.style.display = isVip ? 'inline-block' : 'none';
-                    checkAds(isVip);
                 });
+            });
+            
+            // Create user entry
+            db.ref(`users/${currentUser.uid}`).update({
+                name: currentUser.displayName,
+                email: currentUser.email,
+                photo: currentUser.photoURL,
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
 
-                // Start Video automatically on login
-                startNextMatch();
-
-            } else {
-                loginScreen.style.display = 'flex';
-                appContainer.style.display = 'none';
-                currentUser = null;
-            }
-        });
-
-        // --- 3. PROFILE IMAGE UPLOAD ---
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !currentUser) return;
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64String = event.target.result;
-                // Save to Firebase
-                update(ref(db, 'users/' + currentUser.uid), {
-                    customPhoto: base64String
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // --- 4. AD SYNC ---
-        // Listen to global settings
-        onValue(ref(db, 'settings/ads'), (snapshot) => {
-            const settings = snapshot.val();
-            if(settings) {
-                isAdEnabled = (settings.status === 'on');
-                if(currentUser) {
-                    // Check user sub status again to refresh UI
-                    onValue(ref(db, 'users/' + currentUser.uid), (userSnap) => {
-                        const userData = userSnap.val();
-                        if(userData) checkAds(userData.subscription === 'VIP');
-                    }, { onlyOnce: true });
-                }
-            }
-        });
-
-        function checkAds(isVip) {
-            if (isAdEnabled && !isVip) {
-                adBanner.style.display = 'flex';
-                document.getElementById('ad-text').innerText = "BANNER AD: Buy VIP to Remove";
-            } else {
-                adBanner.style.display = 'none';
+        // ==========================================
+        // WEBRTC & MATCHING LOGIC
+        // ==========================================
+        async function setupLocalCamera() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+            } catch (e) {
+                alert("Camera access denied. Please enable permissions.");
             }
         }
 
-        // --- 5. ZEGO VIDEO LOGIC (Zero Reload) ---
-        const nextBtn = document.getElementById('next-btn');
-        const videoContainer = document.getElementById('video-placeholder');
+        async function startSearch() {
+            if(!localStream) await setupLocalCamera();
+            
+            isSearching = true;
+            statusOverlay.classList.remove('hidden'); // keep background but hide button
+            statusOverlay.innerHTML = `<div class="loading-heart material-icons-round">favorite</div><p style="margin-top:10px">Finding a date...</p>`;
+            chatMsgs.innerHTML = '';
+            remoteVideo.srcObject = null;
 
-        nextBtn.addEventListener('click', startNextMatch);
+            // Simple Queue Logic
+            const queueRef = db.ref('queue');
+            
+            // Look for someone waiting
+            const snapshot = await queueRef.orderByKey().limitToFirst(1).once('value');
+            
+            if (snapshot.exists()) {
+                // Found someone!
+                const otherUserKey = Object.keys(snapshot.val())[0];
+                if(otherUserKey === currentUser.uid) return; // Don't match self
 
-        function startNextMatch() {
-            if (!currentUser) return;
+                // Remove them from queue so no one else grabs them
+                await queueRef.child(otherUserKey).remove();
 
-            // Step A: Cleanup previous instance
-            if (zegoInstance) {
-                zegoInstance.destroy();
-                zegoInstance = null;
+                // Create a room
+                currentRoomId = [currentUser.uid, otherUserKey].sort().join('_');
+                
+                // Signal them to join
+                db.ref(`users/${otherUserKey}/match`).set({
+                    roomId: currentRoomId,
+                    initiator: currentUser.uid
+                });
+                
+                initializeCall(true); // I am the caller
+            } else {
+                // No one waiting, add myself
+                const myRef = queueRef.child(currentUser.uid);
+                myRef.set({ timestamp: firebase.database.ServerValue.TIMESTAMP });
+                myRef.onDisconnect().remove();
+
+                // Listen for a match assigned to me
+                db.ref(`users/${currentUser.uid}/match`).on('value', (sn) => {
+                    const matchData = sn.val();
+                    if (matchData) {
+                        currentRoomId = matchData.roomId;
+                        myRef.remove(); // Remove from queue
+                        db.ref(`users/${currentUser.uid}/match`).off(); // Stop listening
+                        initializeCall(false); // I am the callee
+                    }
+                });
+            }
+        }
+
+        function nextPerson() {
+            if(peerConnection) peerConnection.close();
+            if(currentRoomId) {
+                db.ref(`rooms/${currentRoomId}`).remove();
+                currentRoomId = null;
+            }
+            startSearch();
+        }
+
+        // ==========================================
+        // WEBRTC CORE
+        // ==========================================
+        async function initializeCall(isCaller) {
+            statusOverlay.classList.add('hidden'); // Show video
+            peerConnection = new RTCPeerConnection(servers);
+
+            // Add local tracks
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            // Handle remote stream
+            peerConnection.ontrack = event => {
+                remoteVideo.srcObject = event.streams[0];
+            };
+
+            // ICE Candidates
+            const roomRef = db.ref(`rooms/${currentRoomId}`);
+            const myCandidates = roomRef.child(isCaller ? 'callerCandidates' : 'calleeCandidates');
+            const theirCandidates = roomRef.child(isCaller ? 'calleeCandidates' : 'callerCandidates');
+
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) myCandidates.push(event.candidate.toJSON());
+            };
+
+            // Signalling
+            if (isCaller) {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                await roomRef.child('offer').set({
+                    sdp: offer.sdp,
+                    type: offer.type
+                });
             }
 
-            // Step B: Clear container
-            videoContainer.innerHTML = '';
+            // Listen for signaling data
+            roomRef.on('value', async snapshot => {
+                const data = snapshot.val();
+                if (!peerConnection || !data) return;
 
-            // Step C: Generate Room ID (Random 6 chars)
-            const roomID = Math.random().toString(36).substring(2, 8);
+                if (!isCaller && data.offer && !peerConnection.currentRemoteDescription) {
+                    const offer = new RTCSessionDescription(data.offer);
+                    await peerConnection.setRemoteDescription(offer);
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    await roomRef.child('answer').set({
+                        sdp: answer.sdp,
+                        type: answer.type
+                    });
+                }
 
-            // Step D: Generate Kit Token
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-                appID, 
-                serverSecret, 
-                roomID, 
-                currentUser.uid, 
-                currentUser.displayName || "User"
-            );
+                if (isCaller && data.answer && !peerConnection.currentRemoteDescription) {
+                    const answer = new RTCSessionDescription(data.answer);
+                    await peerConnection.setRemoteDescription(answer);
+                }
+            });
 
-            // Step E: Initialize and Join
-            zegoInstance = ZegoUIKitPrebuilt.create(kitToken);
-            
-            zegoInstance.joinRoom({
-                container: videoContainer,
-                scenario: {
-                    mode: ZegoUIKitPrebuilt.OneONoneCall,
-                },
-                showPreJoinView: false,
-                turnOnMicrophoneWhenJoining: true,
-                turnOnCameraWhenJoining: true,
-                showMyCameraToggleButton: true,
-                showMyMicrophoneToggleButton: true,
-                showAudioVideoSettingsButton: true,
-                layout: "Auto", // Adjusts for mobile
+            // Listen for ICE candidates
+            theirCandidates.on('child_added', snapshot => {
+                const candidate = new RTCIceCandidate(snapshot.val());
+                peerConnection.addIceCandidate(candidate);
+            });
+
+            // Listen for Chat
+            roomRef.child('chat').on('child_added', sn => {
+                const msg = sn.val();
+                addMessageToUI(msg.text, msg.sender === currentUser.uid);
+            });
+
+            // Listen for End/Next
+            roomRef.on('child_removed', () => {
+                 // If the room is deleted or partner disconnects
+                 // In a real app, show "Partner left" then restart
+            });
+        }
+
+        // ==========================================
+        // CHAT & INTERACTIONS
+        // ==========================================
+        function toggleChatInput() {
+            document.getElementById('input-area').classList.toggle('hidden');
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(!text || !currentRoomId) return;
+
+            db.ref(`rooms/${currentRoomId}/chat`).push({
+                sender: currentUser.uid,
+                text: text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            input.value = '';
+        }
+
+        function addMessageToUI(text, isMe) {
+            const div = document.createElement('div');
+            div.className = `msg ${isMe ? 'me' : 'them'} fade-in`;
+            div.innerText = text;
+            chatMsgs.appendChild(div);
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        }
+
+        function sendHeart() {
+            if(!currentRoomId) return;
+            // Visual effect
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.className = 'floater';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 2000);
+
+            // Send system message
+            db.ref(`rooms/${currentRoomId}/chat`).push({
+                sender: currentUser.uid,
+                text: "❤️ Sent a heart!",
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             });
         }
     </script>
